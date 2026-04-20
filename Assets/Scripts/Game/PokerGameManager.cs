@@ -32,14 +32,32 @@ public class PokerGameManager : MonoBehaviour, IGameObserver
     [SerializeField] private RaiseControl raiseControl;
     [SerializeField] private CardDealerManager cardDealerManager;
 
+    [Header("Bot Personalities")]
+    [SerializeField] private BotPersonality[] botPersonalities;
+
     private GameEngine gameEngine;
     private GameState gameState;
     private SecureRandom secureRandom;
     private ShuffleService shuffleService;
     private int handsPlayed = 0;
 
+    // One BotController per seat; index 0 is the human player (null)
+    private BotController[] _botControllers;
+
     // Human player is always seat 0
     private const int HUMAN_PLAYER_SEAT = 0;
+
+    private void Awake()
+    {
+        // Create one BotController per seat; seat 0 is the human player (skipped)
+        _botControllers = new BotController[numberOfPlayers];
+        for (int i = 1; i < numberOfPlayers; i++)
+        {
+            var go = new GameObject($"BotController_Seat{i}");
+            go.transform.SetParent(transform);
+            _botControllers[i] = go.AddComponent<BotController>();
+        }
+    }
 
     private void Start()
     {
@@ -77,6 +95,17 @@ public class PokerGameManager : MonoBehaviour, IGameObserver
         );
 
         Debug.Log($"Poker game initialized with {numberOfPlayers} players. Blinds: ${smallBlind}/${bigBlind}");
+
+        // Assign personalities to bot controllers (seat 0 is human)
+        for (int i = 1; i < numberOfPlayers; i++)
+        {
+            if (_botControllers[i] != null && botPersonalities != null)
+            {
+                int personalityIndex = (i - 1) % botPersonalities.Length;
+                if (botPersonalities.Length > 0)
+                    _botControllers[i].SetPersonality(botPersonalities[personalityIndex]);
+            }
+        }
         
         if (uiManager != null)
         {
@@ -246,6 +275,9 @@ public class PokerGameManager : MonoBehaviour, IGameObserver
         var player = gameState.GetPlayerById(action.PlayerId);
         Debug.Log($"Action processed: {action.Type} by {player.Name}");
 
+        // Track pre-flop aggressor for c-bet logic
+        TrackPreFlopAggressor(action, player);
+
         // Show action on player's UI panel
         if (uiManager != null)
         {
@@ -281,49 +313,13 @@ public class PokerGameManager : MonoBehaviour, IGameObserver
 
     private PlayerAction GetAIAction(Player player)
     {
-        // Simple AI logic
-        var round = gameState.RoundState;
-        var contribution = round.GetContribution(player.Id);
-        var toCall = round.CurrentBet - contribution;
+        var botController = _botControllers[player.SeatIndex];
+        if (botController != null)
+            return botController.RequestAction(gameState, player);
 
-        // Random decision making
-        var random = UnityEngine.Random.value;
-
-        // If no bet to call, check or bet small
-        if (toCall == 0)
-        {
-            if (random > 0.7f && player.Stack > (decimal)bigBlind * 2)
-            {
-                // Bet
-                var betAmount = round.CurrentBet + (decimal)bigBlind;
-                return PlayerAction.Bet(player.Id, betAmount);
-            }
-            else
-            {
-                // Check
-                return PlayerAction.Check(player.Id);
-            }
-        }
-        else
-        {
-            // There's a bet to call
-            if (random > 0.6f && player.Stack >= toCall)
-            {
-                // Call
-                return PlayerAction.Call(player.Id);
-            }
-            else if (random > 0.8f && player.Stack > toCall + (decimal)bigBlind)
-            {
-                // Raise
-                var raiseAmount = round.CurrentBet + (decimal)bigBlind;
-                return PlayerAction.Raise(player.Id, raiseAmount);
-            }
-            else
-            {
-                // Fold
-                return PlayerAction.Fold(player.Id);
-            }
-        }
+        // Fallback: should not happen, but safe default
+        Debug.LogWarning($"[PokerGameManager] No BotController for seat {player.SeatIndex}. Returning Check.");
+        return PlayerAction.Check(player.Id);
     }
 
     private IEnumerator HandleHandComplete()
@@ -399,6 +395,7 @@ public class PokerGameManager : MonoBehaviour, IGameObserver
         }
 
         // 6. Countdown to next hand
+        NotifyBotsHandComplete();
         yield return StartCoroutine(CountdownToNextHand());
         
         // 7. Start next hand
@@ -630,6 +627,37 @@ public class PokerGameManager : MonoBehaviour, IGameObserver
         if (uiManager != null)
         {
             uiManager.UpdateGameStateShowdown(gameState);
+        }
+    }
+
+    /// <summary>
+    /// Notifies all bot controllers that the hand is complete so they can update
+    /// their TableReadTracker with voluntary-entry data. (Req 14.3)
+    /// </summary>
+    private void NotifyBotsHandComplete()
+    {
+        // Determine which seats voluntarily entered the pot (not just posted blinds)
+        var voluntarySeats = gameState.Players
+            .Where(p => p.SeatIndex != HUMAN_PLAYER_SEAT)
+            .Select(p => p.SeatIndex)
+            .ToArray();
+
+        for (int i = 1; i < _botControllers.Length; i++)
+        {
+            _botControllers[i]?.OnHandComplete(gameState, voluntarySeats);
+        }
+    }
+
+    /// <summary>
+    /// Tracks the pre-flop aggressor seat when a raise action is processed.
+    /// </summary>
+    private void TrackPreFlopAggressor(PlayerAction action, Player player)
+    {
+        if (gameState.Phase == GamePhase.PreFlop &&
+            (action.Type == ActionType.Raise || action.Type == ActionType.Bet))
+        {
+            for (int i = 1; i < _botControllers.Length; i++)
+                _botControllers[i]?.SetPreFlopAggressor(player.SeatIndex);
         }
     }
 
