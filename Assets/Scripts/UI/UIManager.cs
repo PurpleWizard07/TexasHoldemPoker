@@ -1,0 +1,280 @@
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+using PokerEngine.State;
+
+/// <summary>
+/// Manages all UI updates for the poker game.
+/// </summary>
+public class UIManager : MonoBehaviour
+{
+    [Header("UI References")]
+    [SerializeField] private TextMeshProUGUI potText;
+    [SerializeField] private TextMeshProUGUI phaseText;
+    [SerializeField] private Button startHandButton;
+    [SerializeField] private Button foldButton;
+    [SerializeField] private Button checkButton;
+    [SerializeField] private Button callButton;
+    [SerializeField] private Button betButton;
+    [SerializeField] private Button raiseButton;
+    [SerializeField] private Button allInButton;
+
+    [Header("Player UI")]
+    [SerializeField] private PlayerUIPanel[] playerPanels;
+    [SerializeField] private CommunityCardsDisplay communityCardsDisplay;
+    [SerializeField] private RaiseControl raiseControl;
+
+    private PokerGameManager gameManager;
+    private GamePhase lastPhase = GamePhase.NotStarted;
+
+    private void Awake()
+    {
+        gameManager = FindFirstObjectByType<PokerGameManager>();
+        
+        // Setup button listeners
+        if (startHandButton != null)
+            startHandButton.onClick.AddListener(() => gameManager?.StartNewHand());
+        if (foldButton != null)
+            foldButton.onClick.AddListener(() => gameManager?.OnFoldClicked());
+        if (checkButton != null)
+            checkButton.onClick.AddListener(() => gameManager?.OnCheckClicked());
+        if (callButton != null)
+            callButton.onClick.AddListener(() => gameManager?.OnCallClicked());
+        if (betButton != null)
+            betButton.onClick.AddListener(() => gameManager?.OnBetClicked());
+        if (raiseButton != null)
+            raiseButton.onClick.AddListener(() => gameManager?.OnRaiseClicked());
+        if (allInButton != null)
+            allInButton.onClick.AddListener(() => gameManager?.OnAllInClicked());
+    }
+
+    public void EnablePlayerActions(bool enable)
+    {
+        if (foldButton != null) foldButton.interactable = enable;
+        if (checkButton != null) checkButton.interactable = enable;
+        if (callButton != null) callButton.interactable = enable;
+        if (betButton != null) betButton.interactable = enable;
+        if (raiseButton != null) raiseButton.interactable = enable;
+        if (allInButton != null) allInButton.interactable = enable;
+    }
+
+    public void UpdateGameState(GameState state)
+    {
+        if (state == null) return;
+
+        // Check if phase changed - clear actions at start of new betting round
+        if (state.Phase != lastPhase)
+        {
+            ClearAllPlayerActions();
+            lastPhase = state.Phase;
+        }
+
+        // Update pot and phase text (now in center)
+        if (potText != null)
+        {
+            var totalPot = state.TotalContributions.Values.Sum();
+            potText.text = $"POT: ${totalPot}";
+        }
+
+        // Update phase
+        if (phaseText != null)
+        {
+            phaseText.text = $"{state.Phase}";
+        }
+
+        // Update community cards with current phase
+        if (communityCardsDisplay != null)
+        {
+            if (state.Phase == GamePhase.NotStarted)
+            {
+                // Show all card backs at start
+                communityCardsDisplay.ShowAllCardBacks();
+            }
+            else
+            {
+                // Update cards based on phase
+                communityCardsDisplay.UpdateCards(state.CommunityCards, state.Phase);
+            }
+        }
+
+        // Update player panels (normal mode - only show human cards)
+        UpdatePlayerPanels(state, false);
+
+        // Update button states
+        UpdateButtonStates(state);
+    }
+
+    public void UpdateGameStateShowdown(GameState state)
+    {
+        if (state == null) return;
+
+        // Update pot and phase text (now in center)
+        if (potText != null)
+        {
+            var totalPot = state.TotalContributions.Values.Sum();
+            potText.text = $"POT: ${totalPot}";
+        }
+
+        // Update phase
+        if (phaseText != null)
+        {
+            phaseText.text = $"{state.Phase}";
+        }
+
+        // Update community cards with current phase
+        if (communityCardsDisplay != null)
+        {
+            communityCardsDisplay.UpdateCards(state.CommunityCards, state.Phase);
+        }
+
+        // Update player panels (showdown mode - show all active players' cards)
+        UpdatePlayerPanels(state, true);
+
+        // Update button states
+        UpdateButtonStates(state);
+    }
+
+    private void UpdatePlayerPanels(GameState state, bool isShowdown = false)
+    {
+        if (playerPanels == null) return;
+
+        for (int i = 0; i < playerPanels.Length && i < state.Players.Count; i++)
+        {
+            var player = state.Players[i];
+            bool isActive = state.CurrentSeatToAct == i;
+            bool isDealer = (state.DealerSeat == i);
+            
+            // Determine if we should show this player's cards
+            bool showCards = false;
+            if (isShowdown)
+            {
+                // During showdown, show cards for all active (non-folded) players
+                showCards = !player.IsFolded;
+            }
+            else
+            {
+                // Normal play: only show human player's cards (seat 0)
+                showCards = (i == 0);
+            }
+            
+            // Get current ROUND bet for this player (not total contributions)
+            decimal currentRoundBet = 0;
+            if (state.RoundState != null && !state.HandComplete)
+            {
+                currentRoundBet = state.RoundState.GetContribution(player.Id);
+            }
+            
+            playerPanels[i].UpdatePlayer(player, isActive, showCards, currentRoundBet, isDealer);
+        }
+    }
+
+    private void UpdateButtonStates(GameState state, bool isShowdown = false)
+    {
+        bool isActive = !state.HandComplete && state.Phase != GamePhase.NotStarted;
+        bool isHumanTurn = gameManager != null && gameManager.IsHumanTurn();
+        
+        // Always available actions
+        if (foldButton != null) foldButton.interactable = isActive && isHumanTurn;
+        if (allInButton != null) allInButton.interactable = isActive && isHumanTurn;
+        if (startHandButton != null) startHandButton.interactable = !isActive;
+        
+        // Conditional actions based on current bet
+        if (isActive && isHumanTurn)
+        {
+            var round = state.RoundState;
+            var player = state.GetPlayerBySeat(0); // Human is seat 0
+            var contribution = round.GetContribution(player.Id);
+            var currentBet = round.CurrentBet;
+            bool hasBetToCall = currentBet > contribution;
+            
+            // Check: Only available when no bet to call
+            if (checkButton != null) 
+                checkButton.interactable = !hasBetToCall;
+            
+            // Call: Only available when there's a bet to call
+            if (callButton != null) 
+                callButton.interactable = hasBetToCall;
+            
+            // Bet: Only available when no one has bet yet
+            if (betButton != null) 
+                betButton.interactable = !hasBetToCall;
+            
+            // Raise: Only available when there's already a bet
+            if (raiseButton != null) 
+                raiseButton.interactable = hasBetToCall;
+        }
+        else
+        {
+            // Disable all conditional actions when not human's turn
+            if (checkButton != null) checkButton.interactable = false;
+            if (callButton != null) callButton.interactable = false;
+            if (betButton != null) betButton.interactable = false;
+            if (raiseButton != null) raiseButton.interactable = false;
+        }
+        
+        // Hide raise control when turn ends
+        if (raiseControl != null && !isHumanTurn)
+        {
+            raiseControl.Hide();
+        }
+    }
+
+    /// <summary>
+    /// Show an action for a specific player.
+    /// </summary>
+    public void ShowPlayerAction(int seatIndex, string action, decimal amount = 0)
+    {
+        if (playerPanels == null || seatIndex < 0 || seatIndex >= playerPanels.Length)
+            return;
+
+        playerPanels[seatIndex].ShowAction(action, amount);
+    }
+
+    /// <summary>
+    /// Clear all player actions (called at start of new betting round).
+    /// </summary>
+    private void ClearAllPlayerActions()
+    {
+        if (playerPanels == null) return;
+
+        foreach (var panel in playerPanels)
+        {
+            if (panel != null)
+                panel.ClearAction();
+        }
+    }
+
+    /// <summary>
+    /// Get the transform of a player panel by seat index.
+    /// Used for chip animations targeting a player.
+    /// </summary>
+    public Transform GetPlayerPanelTransform(int seatIndex)
+    {
+        if (playerPanels == null || seatIndex < 0 || seatIndex >= playerPanels.Length)
+            return null;
+        
+        return playerPanels[seatIndex]?.transform;
+    }
+
+    /// <summary>
+    /// Get all bet displays for chip collection animations.
+    /// </summary>
+    public BetDisplay[] GetAllBetDisplays()
+    {
+        if (playerPanels == null) return null;
+        
+        List<BetDisplay> displays = new List<BetDisplay>();
+        foreach (var panel in playerPanels)
+        {
+            if (panel != null)
+            {
+                BetDisplay bet = panel.GetComponentInChildren<BetDisplay>();
+                if (bet != null)
+                    displays.Add(bet);
+            }
+        }
+        return displays.ToArray();
+    }
+}

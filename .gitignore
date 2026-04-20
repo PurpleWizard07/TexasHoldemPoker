@@ -1,0 +1,69 @@
+# ================================
+# Unity Generated Folders
+# ================================
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Mm]emoryCaptures/
+UserSettings/
+
+# ================================
+# IDE / Editor Files
+# ================================
+.vscode/
+.idea/
+*.csproj
+*.sln
+*.unityproj
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+
+# ================================
+# OS System Files
+# ================================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ================================
+# Unity Crash Reports
+# ================================
+sysinfo.txt
+
+# ================================
+# WebGL Builds (Generated)
+# ================================
+Build/WebGL/
+docs/
+
+# ================================
+# Unity Package Manager Cache
+# ================================
+Packages/packages-lock.json
+
+# ================================
+# Networking / Multiplayer Temp
+# ================================
+Photon/Logs/
+Mirror/Logs/
+Netcode/Logs/
+
+# ================================
+# Test / Coverage
+# ================================
+coverage/
+TestResults/
+
+# ================================
+# Addressables Build
+# ================================
+ServerData/
