@@ -10,6 +10,8 @@ using PokerEngine.State;
 /// </summary>
 public class UIManager : MonoBehaviour
 {
+    [SerializeField] private PokerVisualTheme visualTheme;
+
     [Header("UI References")]
     [SerializeField] private TextMeshProUGUI potText;
     [SerializeField] private TextMeshProUGUI phaseText;
@@ -32,6 +34,7 @@ public class UIManager : MonoBehaviour
     private void Awake()
     {
         gameManager = FindFirstObjectByType<PokerGameManager>();
+        ApplyTheme();
         
         // Setup button listeners
         if (startHandButton != null)
@@ -48,6 +51,57 @@ public class UIManager : MonoBehaviour
             raiseButton.onClick.AddListener(() => gameManager?.OnRaiseClicked());
         if (allInButton != null)
             allInButton.onClick.AddListener(() => gameManager?.OnAllInClicked());
+    }
+
+    private void ApplyTheme()
+    {
+        if (visualTheme == null)
+        {
+            return;
+        }
+
+        ApplyTextStyle(potText, visualTheme.TitleFontSize, visualTheme.WarningTextColor);
+        ApplyTextStyle(phaseText, visualTheme.BodyFontSize, visualTheme.SecondaryTextColor);
+
+        ApplyButtonStyle(startHandButton, visualTheme.ActionCallColor);
+        ApplyButtonStyle(foldButton, visualTheme.ActionFoldColor);
+        ApplyButtonStyle(checkButton, visualTheme.ActionCheckColor);
+        ApplyButtonStyle(callButton, visualTheme.ActionCallColor);
+        ApplyButtonStyle(betButton, visualTheme.ActionRaiseColor);
+        ApplyButtonStyle(raiseButton, visualTheme.ActionRaiseColor);
+        ApplyButtonStyle(allInButton, visualTheme.ActionAllInColor);
+    }
+
+    private void ApplyTextStyle(TextMeshProUGUI text, float size, Color color)
+    {
+        if (text == null)
+        {
+            return;
+        }
+
+        text.fontSize = size;
+        text.color = color;
+    }
+
+    private void ApplyButtonStyle(Button button, Color color)
+    {
+        if (button == null)
+        {
+            return;
+        }
+
+        Image img = button.GetComponent<Image>();
+        if (img != null)
+        {
+            img.color = color;
+        }
+
+        TextMeshProUGUI label = button.GetComponentInChildren<TextMeshProUGUI>();
+        if (label != null)
+        {
+            label.fontSize = visualTheme.ActionButtonFontSize;
+            label.color = visualTheme.PrimaryTextColor;
+        }
     }
 
     public void EnablePlayerActions(bool enable)

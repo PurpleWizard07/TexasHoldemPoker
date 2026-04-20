@@ -9,6 +9,7 @@ public static class CardSpriteLoader
 {
     private static Dictionary<string, Sprite> spriteCache = new Dictionary<string, Sprite>();
     private static bool isInitialized = false;
+    private static string activeDeckResourcePath = "Cards";
 
     public static Sprite GetCardSprite(Card card)
     {
@@ -28,15 +29,15 @@ public static class CardSpriteLoader
 
     private static void Initialize()
     {
-        // Load all card sprites from Resources/Cards folder
-        Sprite[] sprites = Resources.LoadAll<Sprite>("Cards");
+        // Load all card sprites from selected deck resource path.
+        Sprite[] sprites = Resources.LoadAll<Sprite>(activeDeckResourcePath);
         
         foreach (var sprite in sprites)
         {
             spriteCache[sprite.name] = sprite;
         }
 
-        Debug.Log($"Loaded {spriteCache.Count} card sprites");
+        Debug.Log($"Loaded {spriteCache.Count} card sprites from {activeDeckResourcePath}");
         isInitialized = true;
     }
 
@@ -78,5 +79,30 @@ public static class CardSpriteLoader
     {
         spriteCache.Clear();
         isInitialized = false;
+    }
+
+    /// <summary>
+    /// Select card deck resource path (e.g., "Cards", "CardsClassic", "CardsClean").
+    /// </summary>
+    public static void SetDeckResourcePath(string resourcePath)
+    {
+        if (string.IsNullOrWhiteSpace(resourcePath))
+        {
+            return;
+        }
+
+        if (activeDeckResourcePath == resourcePath)
+        {
+            return;
+        }
+
+        activeDeckResourcePath = resourcePath;
+        ClearCache();
+        Initialize();
+    }
+
+    public static string GetActiveDeckResourcePath()
+    {
+        return activeDeckResourcePath;
     }
 }

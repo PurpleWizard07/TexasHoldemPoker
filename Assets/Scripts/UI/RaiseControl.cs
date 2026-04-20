@@ -11,6 +11,9 @@ public class RaiseControl : MonoBehaviour
     [Header("UI References")]
     [SerializeField] private GameObject raisePanel;
     [SerializeField] private TMP_InputField amountInputField;
+    [SerializeField] private Slider amountSlider;
+    [SerializeField] private TextMeshProUGUI rangeText;
+    [SerializeField] private PokerVisualTheme visualTheme;
 
     private decimal minRaise;
     private decimal maxRaise;
@@ -25,10 +28,17 @@ public class RaiseControl : MonoBehaviour
             amountInputField.onValueChanged.AddListener(OnInputChanged);
             amountInputField.contentType = TMP_InputField.ContentType.DecimalNumber;
         }
+        if (amountSlider != null)
+        {
+            amountSlider.onValueChanged.AddListener(OnSliderChanged);
+            amountSlider.wholeNumbers = true;
+        }
 
         // Hide panel initially
         if (raisePanel != null)
             raisePanel.SetActive(false);
+
+        ApplyTheme();
     }
 
     /// <summary>
@@ -56,6 +66,16 @@ public class RaiseControl : MonoBehaviour
             amountInputField.text = minRaise.ToString("0");
             amountInputField.Select();
             amountInputField.ActivateInputField();
+        }
+        if (amountSlider != null)
+        {
+            amountSlider.minValue = (float)minRaise;
+            amountSlider.maxValue = (float)maxRaise;
+            amountSlider.value = (float)currentRaise;
+        }
+        if (rangeText != null)
+        {
+            rangeText.text = $"MIN ${minRaise:0}  -  MAX ${maxRaise:0}";
         }
 
         // Show panel
@@ -104,6 +124,11 @@ public class RaiseControl : MonoBehaviour
             // Invalid input, reset to minimum
             currentRaise = minRaise;
         }
+
+        if (amountSlider != null)
+        {
+            amountSlider.SetValueWithoutNotify((float)currentRaise);
+        }
     }
 
     /// <summary>
@@ -116,6 +141,8 @@ public class RaiseControl : MonoBehaviour
         
         if (amountInputField != null)
             amountInputField.text = amount.ToString("0");
+        if (amountSlider != null)
+            amountSlider.SetValueWithoutNotify((float)amount);
     }
 
     /// <summary>
@@ -140,5 +167,29 @@ public class RaiseControl : MonoBehaviour
     public void SetToHalfPot(decimal potSize)
     {
         SetRaiseAmount(potSize / 2);
+    }
+
+    private void OnSliderChanged(float value)
+    {
+        SetRaiseAmount((decimal)value);
+    }
+
+    private void ApplyTheme()
+    {
+        if (visualTheme == null)
+        {
+            return;
+        }
+
+        if (amountInputField != null && amountInputField.textComponent != null)
+        {
+            amountInputField.textComponent.color = visualTheme.PrimaryTextColor;
+            amountInputField.textComponent.fontSize = visualTheme.BodyFontSize;
+        }
+        if (rangeText != null)
+        {
+            rangeText.color = visualTheme.SecondaryTextColor;
+            rangeText.fontSize = visualTheme.CaptionFontSize;
+        }
     }
 }

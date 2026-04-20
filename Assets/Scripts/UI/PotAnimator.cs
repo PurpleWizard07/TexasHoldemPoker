@@ -8,6 +8,8 @@ using TMPro;
 /// </summary>
 public class PotAnimator : MonoBehaviour
 {
+    [SerializeField] private PokerVisualTheme visualTheme;
+
     [Header("Animation Settings")]
     [SerializeField] private float animationDuration = 1.5f;
     [SerializeField] private AnimationCurve movementCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
@@ -22,6 +24,10 @@ public class PotAnimator : MonoBehaviour
 
     private void Awake()
     {
+        if (visualTheme != null)
+        {
+            animationDuration = Mathf.Max(0.35f, visualTheme.ChipFlightDuration);
+        }
         EnsureChipAnimatorSetup();
     }
 
@@ -264,8 +270,8 @@ public class PotAnimator : MonoBehaviour
         
         var textComponent = potVisual.AddComponent<TextMeshProUGUI>();
         textComponent.text = $"${amount}";
-        textComponent.fontSize = 24;
-        textComponent.color = Color.yellow;
+        textComponent.fontSize = visualTheme != null ? visualTheme.BodyFontSize : 24;
+        textComponent.color = visualTheme != null ? visualTheme.WarningTextColor : Color.yellow;
         textComponent.alignment = TextAlignmentOptions.Center;
         
         potVisual.transform.position = centerPotPosition.position;
