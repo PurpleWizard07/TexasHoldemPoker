@@ -11,8 +11,6 @@ public class PokerUISetup : MonoBehaviour
     [ContextMenu("Setup UI")]
     public void SetupUI()
     {
-        ConfigureCanvas();
-
         // Create main UI container
         var uiRoot = new GameObject("PokerUI");
         uiRoot.transform.SetParent(transform, false);
@@ -30,26 +28,7 @@ public class PokerUISetup : MonoBehaviour
         // Create Player Panels (around table)
         CreatePlayerPanels(uiRoot.transform);
 
-        // Add responsive behavior helpers
-        var safeArea = uiRoot.AddComponent<SafeAreaFitter>();
-        var responsive = uiRoot.AddComponent<ResponsiveTableLayout>();
-        responsive.ApplyBestPreset(force: true);
-
         Debug.Log("Poker UI Setup Complete!");
-    }
-
-    private void ConfigureCanvas()
-    {
-        CanvasScaler scaler = GetComponent<CanvasScaler>();
-        if (scaler == null)
-        {
-            scaler = gameObject.AddComponent<CanvasScaler>();
-        }
-
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1920, 1080);
-        scaler.matchWidthOrHeight = 0.5f;
-        scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
     }
 
     private void CreateInfoPanel(Transform parent)

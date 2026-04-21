@@ -6,8 +6,6 @@ using UnityEngine;
 /// </summary>
 public class CardAnimator : MonoBehaviour
 {
-    [SerializeField] private PokerVisualTheme visualTheme;
-
     [Header("Dealing Settings")]
     [SerializeField] private Transform deckPosition; // Central deck position
     [SerializeField] private float dealDuration = 0.4f;
@@ -25,8 +23,6 @@ public class CardAnimator : MonoBehaviour
 
     private void Awake()
     {
-        ApplyThemeTimings();
-
         // If no deck position is set, use this object's position
         if (deckPosition == null)
         {
@@ -70,7 +66,9 @@ public class CardAnimator : MonoBehaviour
             currentPos.y += arcProgress * arcHeight;
             
             card.position = currentPos;
-            card.localRotation = Quaternion.Euler(0, 0, Mathf.Lerp(0, 24f, t));
+            
+            // Optional: Add slight rotation during flight
+            card.localRotation = Quaternion.Euler(0, 0, Mathf.Lerp(0, 360, t));
             
             yield return null;
         }
@@ -78,10 +76,6 @@ public class CardAnimator : MonoBehaviour
         // Ensure final position and rotation
         card.position = targetPosition;
         card.localRotation = Quaternion.identity;
-
-        // Small settle bounce on landing for cleaner polish feel.
-        yield return StartCoroutine(ScaleCard(card, 1.05f, 0.05f));
-        yield return StartCoroutine(ScaleCard(card, 1f, 0.08f));
     }
 
     /// <summary>
@@ -210,16 +204,4 @@ public class CardAnimator : MonoBehaviour
     // Public getters for settings
     public float GetDealDelay() => dealDelay;
     public Transform GetDeckPosition() => deckPosition;
-
-    private void ApplyThemeTimings()
-    {
-        if (visualTheme == null)
-        {
-            return;
-        }
-
-        dealDuration = visualTheme.DealDuration;
-        dealDelay = visualTheme.DealDelay;
-        flipDuration = visualTheme.CardFlipDuration;
-    }
 }

@@ -8,7 +8,6 @@ using PokerEngine.Core;
 /// </summary>
 public class PlayerUIPanel : MonoBehaviour
 {
-    [SerializeField] private PokerVisualTheme visualTheme;
     [SerializeField] private TextMeshProUGUI playerNameText;
     [SerializeField] private TextMeshProUGUI stackText;
     [SerializeField] private TextMeshProUGUI statusText;
@@ -28,11 +27,6 @@ public class PlayerUIPanel : MonoBehaviour
     private bool isGlowing = false;
     private float glowTimer = 0f;
 
-    private void Awake()
-    {
-        ApplyTheme();
-    }
-
     public void UpdatePlayer(Player player, bool isActive, bool showCards = false, decimal currentBet = 0, bool isDealer = false)
     {
         if (player == null) return;
@@ -43,28 +37,17 @@ public class PlayerUIPanel : MonoBehaviour
 
         // Update stack
         if (stackText != null)
-        {
             stackText.text = $"${player.Stack}";
-            stackText.color = player.IsAllIn ? new Color(1f, 0.45f, 0.45f, 1f) : stackText.color;
-        }
 
         // Update status
         if (statusText != null)
         {
             if (player.IsFolded)
-            {
                 statusText.text = "Folded";
-                statusText.color = visualTheme != null ? visualTheme.DangerTextColor : new Color(0.95f, 0.34f, 0.34f, 1f);
-            }
             else if (player.IsAllIn)
-            {
                 statusText.text = "All-In";
-                statusText.color = visualTheme != null ? visualTheme.WarningTextColor : new Color(1f, 0.74f, 0.35f, 1f);
-            }
             else
-            {
                 statusText.text = "";
-            }
         }
 
         // Highlight active player (old method - kept for compatibility)
@@ -72,7 +55,7 @@ public class PlayerUIPanel : MonoBehaviour
         {
             highlightImage.enabled = isActive;
             if (isActive)
-                highlightImage.color = visualTheme != null ? new Color(visualTheme.ActiveSeatGlowColor.r, visualTheme.ActiveSeatGlowColor.g, visualTheme.ActiveSeatGlowColor.b, 0.26f) : new Color(1f, 0.8f, 0f, 0.3f);
+                highlightImage.color = new Color(1f, 0.8f, 0f, 0.3f); // Yellow highlight
         }
         
         // Enable/disable glowing outline
@@ -120,36 +103,6 @@ public class PlayerUIPanel : MonoBehaviour
                 glowTimer = 0f;
                 glowOutline.color = glowColor;
             }
-        }
-    }
-
-    private void ApplyTheme()
-    {
-        if (visualTheme == null)
-        {
-            return;
-        }
-
-        glowColor = visualTheme.ActiveSeatGlowColor;
-        minGlowAlpha = 0.25f;
-        maxGlowAlpha = 0.9f;
-
-        if (playerNameText != null)
-        {
-            playerNameText.color = visualTheme.PrimaryTextColor;
-            playerNameText.fontSize = visualTheme.CaptionFontSize;
-        }
-
-        if (stackText != null)
-        {
-            stackText.color = visualTheme.PositiveTextColor;
-            stackText.fontSize = visualTheme.BodyFontSize;
-        }
-
-        if (statusText != null)
-        {
-            statusText.color = visualTheme.SecondaryTextColor;
-            statusText.fontSize = visualTheme.CaptionFontSize;
         }
     }
 

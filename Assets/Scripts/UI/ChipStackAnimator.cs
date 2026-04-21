@@ -9,8 +9,6 @@ using UnityEngine.UI;
 /// </summary>
 public class ChipStackAnimator : MonoBehaviour
 {
-    [SerializeField] private PokerVisualTheme visualTheme;
-
     [Header("Animation Settings")]
     [SerializeField] private float chipFlyDuration = 0.5f;
     [SerializeField] private float delayBetweenChips = 0.08f;
@@ -20,7 +18,6 @@ public class ChipStackAnimator : MonoBehaviour
     [Header("Chip Visual Settings")]
     [SerializeField] private float flyingChipSize = 40f;
     [SerializeField] private int maxFlyingChips = 8;
-    [SerializeField] private string chipResourcePrefix = "chip";
 
     [Header("Sound (Optional)")]
     [SerializeField] private AudioSource audioSource;
@@ -33,7 +30,6 @@ public class ChipStackAnimator : MonoBehaviour
 
     private void Awake()
     {
-        ApplyThemeTimings();
         LoadChipSprites();
         VerifyCanvasParent();
     }
@@ -64,10 +60,6 @@ public class ChipStackAnimator : MonoBehaviour
         foreach (int denom in denominations)
         {
             Sprite sprite = Resources.Load<Sprite>($"chip{denom}");
-            if (sprite == null && !string.IsNullOrWhiteSpace(chipResourcePrefix))
-            {
-                sprite = Resources.Load<Sprite>($"{chipResourcePrefix}{denom}");
-            }
             if (sprite != null)
             {
                 chipSprites[denom] = sprite;
@@ -198,10 +190,6 @@ public class ChipStackAnimator : MonoBehaviour
             yield return new WaitForSeconds(delay);
 
         GameObject chip = CreateFlyingChip(chipValue);
-        if (chip == null)
-        {
-            yield break;
-        }
         chip.transform.position = from;
         flyingChips.Add(chip);
 
@@ -254,10 +242,6 @@ public class ChipStackAnimator : MonoBehaviour
             yield return new WaitForSeconds(delay);
 
         GameObject chip = CreateFlyingChip(chipValue);
-        if (chip == null)
-        {
-            yield break;
-        }
         chip.transform.position = from;
         flyingChips.Add(chip);
 
@@ -436,16 +420,5 @@ public class ChipStackAnimator : MonoBehaviour
     private void OnDestroy()
     {
         ClearFlyingChips();
-    }
-
-    private void ApplyThemeTimings()
-    {
-        if (visualTheme == null)
-        {
-            return;
-        }
-
-        chipFlyDuration = visualTheme.ChipFlightDuration;
-        delayBetweenChips = Mathf.Min(delayBetweenChips, chipFlyDuration * 0.3f);
     }
 }

@@ -9,8 +9,6 @@ public class PlayerActionDisplay : MonoBehaviour
 {
     [SerializeField] private GameObject actionPanel;
     [SerializeField] private TextMeshProUGUI actionText;
-    [SerializeField] private PokerVisualTheme visualTheme;
-    [SerializeField] private bool includeAmountForBetActions = true;
     
     [Header("Colors")]
     [SerializeField] private Color foldColor = new Color(0.8f, 0.2f, 0.2f); // Red
@@ -21,7 +19,6 @@ public class PlayerActionDisplay : MonoBehaviour
 
     private void Start()
     {
-        ApplyTheme();
         Clear();
     }
 
@@ -59,8 +56,8 @@ public class PlayerActionDisplay : MonoBehaviour
     private string FormatAction(string action, decimal amount)
     {
         action = action.ToUpper();
-
-        bool showAmount = includeAmountForBetActions && amount > 0;
+        
+        // Return only action names, no amounts
         switch (action)
         {
             case "FOLD":
@@ -70,13 +67,13 @@ public class PlayerActionDisplay : MonoBehaviour
                 return "CHECK";
             
             case "CALL":
-                return showAmount ? $"CALL ${amount:0}" : "CALL";
+                return "CALL";
             
             case "BET":
-                return showAmount ? $"BET ${amount:0}" : "BET";
+                return "BET";
             
             case "RAISE":
-                return showAmount ? $"RAISE ${amount:0}" : "RAISE";
+                return "RAISE";
             
             case "ALLIN":
             case "ALL-IN":
@@ -112,25 +109,6 @@ public class PlayerActionDisplay : MonoBehaviour
             
             default:
                 return Color.white;
-        }
-    }
-
-    private void ApplyTheme()
-    {
-        if (visualTheme == null)
-        {
-            return;
-        }
-
-        foldColor = visualTheme.ActionFoldColor;
-        checkColor = visualTheme.ActionCheckColor;
-        callColor = visualTheme.ActionCallColor;
-        raiseColor = visualTheme.ActionRaiseColor;
-        allInColor = visualTheme.ActionAllInColor;
-
-        if (actionText != null)
-        {
-            actionText.fontSize = visualTheme.CaptionFontSize;
         }
     }
 }

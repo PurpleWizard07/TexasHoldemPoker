@@ -7,7 +7,6 @@ using UnityEngine.UI;
 /// </summary>
 public class WinnerCelebration : MonoBehaviour
 {
-    [SerializeField] private PokerVisualTheme visualTheme;
     [SerializeField] private GameObject celebrationPanel;
     [SerializeField] private Image flashImage;
     [SerializeField] private float flashDuration = 0.5f;
@@ -19,9 +18,8 @@ public class WinnerCelebration : MonoBehaviour
         {
             flashImage.gameObject.SetActive(true);
             float elapsed = 0f;
-            Color baseColor = visualTheme != null ? visualTheme.WarningTextColor : new Color(1f, 0.85f, 0.36f, 1f);
-            Color startColor = new Color(baseColor.r, baseColor.g, baseColor.b, 0.32f);
-            Color endColor = new Color(baseColor.r, baseColor.g, baseColor.b, 0f);
+            Color startColor = new Color(1, 1, 0, 0.5f);
+            Color endColor = new Color(1, 1, 0, 0);
 
             while (elapsed < flashDuration)
             {
@@ -37,14 +35,14 @@ public class WinnerCelebration : MonoBehaviour
         if (winnerPanel != null)
         {
             Vector3 originalScale = winnerPanel.localScale;
-            float pulseDuration = visualTheme != null ? visualTheme.WinnerPulseDuration : 0.22f;
+            float pulseDuration = 0.3f;
             float elapsed = 0f;
 
             // Scale up
             while (elapsed < pulseDuration)
             {
                 elapsed += Time.deltaTime;
-                float scale = Mathf.Lerp(1f, 1.1f, elapsed / pulseDuration);
+                float scale = Mathf.Lerp(1f, 1.2f, elapsed / pulseDuration);
                 winnerPanel.localScale = originalScale * scale;
                 yield return null;
             }
@@ -54,7 +52,7 @@ public class WinnerCelebration : MonoBehaviour
             while (elapsed < pulseDuration)
             {
                 elapsed += Time.deltaTime;
-                float scale = Mathf.Lerp(1.1f, 1f, elapsed / pulseDuration);
+                float scale = Mathf.Lerp(1.2f, 1f, elapsed / pulseDuration);
                 winnerPanel.localScale = originalScale * scale;
                 yield return null;
             }
