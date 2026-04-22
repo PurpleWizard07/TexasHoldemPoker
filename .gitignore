@@ -67,3 +67,38 @@ TestResults/
 # Addressables Build
 # ================================
 ServerData/
+
+# ================================
+# Additional Unity Cache Files
+# ================================
+Library/ShaderCache/
+Library/SourceAssetDB
+Library/StateCache/
+Library/UIElements/
+
+# ================================
+# Temporary Files
+# ================================
+Temp/FSTimeGet-*
+Temp/UnityLockfile
+
+# ================================
+# Inspect DLL Build Artifacts
+# ================================
+_inspect_dll/bin/
+_inspect_dll/obj/
+
+# ================================
+# Markdown Files
+# ================================
+*.md
+
+# ================================
+# Kiro Files
+# ================================
+*.kiro
+
+# ================================
+# Visual Studio Folder
+# ================================
+.vs/
