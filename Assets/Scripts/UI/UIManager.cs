@@ -7,45 +7,38 @@ using PokerEngine.State;
 
 /// <summary>
 /// Orchestration layer for all in-game UI.
-/// Receives calls from PokerGameManager and delegates to the appropriate child components.
+/// Receives calls from PokerGameManager and delegates to the new overhauled components.
 /// All existing public method signatures are preserved unchanged.
 /// Requirements: 1.3, 1.4, 1.5, 12.2
 /// </summary>
 public class UIManager : MonoBehaviour
 {
     // -------------------------------------------------------------------------
-    // Legacy serialized fields (kept for backward compatibility with existing
-    // scene wiring — UIManager still owns these but delegates to new components)
+    // Serialized fields — new component references
     // -------------------------------------------------------------------------
 
-    [Header("Legacy UI References (kept for backward compatibility)")]
-    [SerializeField] private TextMeshProUGUI potText;
-    [SerializeField] private TextMeshProUGUI phaseText;
-    [SerializeField] private Button startHandButton;
-    [SerializeField] private Button foldButton;
-    [SerializeField] private Button checkButton;
-    [SerializeField] private Button callButton;
-    [SerializeField] private Button betButton;
-    [SerializeField] private Button raiseButton;
-    [SerializeField] private Button allInButton;
+    [Header("Player Panels")]
+    [SerializeField] private PlayerUIPanel[] playerPanels = new PlayerUIPanel[6];
 
-    [Header("Legacy Player UI")]
-    [SerializeField] private PlayerUIPanel[] playerPanels;
+    [Header("Community Cards")]
     [SerializeField] private CommunityCardsDisplay communityCardsDisplay;
+
+    [Header("Center Pot")]
+    [SerializeField] private CenterPotDisplay centerPotDisplay;
+
+    [Header("Action Controls")]
+    [SerializeField] private ActionBar actionBar;
     [SerializeField] private RaiseControl raiseControl;
 
-    // -------------------------------------------------------------------------
-    // New component references (wired via Inspector or PokerUISetup)
-    // -------------------------------------------------------------------------
-
-    [Header("New Components")]
-    [SerializeField] private CenterPotDisplay centerPotDisplay;
-    [SerializeField] private ActionBar actionBar;
+    [Header("Showdown / Celebration")]
     [SerializeField] private ShowdownUI showdownUI;
     [SerializeField] private WinnerCelebration winnerCelebration;
     [SerializeField] private GameOverUI gameOverUI;
+
+    [Header("Card & Chip Managers")]
     [SerializeField] private CardDealerManager cardDealerManager;
     [SerializeField] private PotAnimator potAnimator;
+    [SerializeField] private ChipPool chipPool;
 
     // -------------------------------------------------------------------------
     // Theme
@@ -77,66 +70,75 @@ public class UIManager : MonoBehaviour
             theme = UITheme.CreateDefault();
         }
 
-        // Distribute theme to child components that accept it
+        ValidateReferences();
         ApplyThemeToChildren();
 
         gameManager = FindFirstObjectByType<PokerGameManager>();
+    }
 
-        // Wire legacy button listeners (preserved for backward compatibility)
-        if (startHandButton != null)
-            startHandButton.onClick.AddListener(() => gameManager?.StartNewHand());
-        if (foldButton != null)
-            foldButton.onClick.AddListener(() => gameManager?.OnFoldClicked());
-        if (checkButton != null)
-            checkButton.onClick.AddListener(() => gameManager?.OnCheckClicked());
-        if (callButton != null)
-            callButton.onClick.AddListener(() => gameManager?.OnCallClicked());
-        if (betButton != null)
-            betButton.onClick.AddListener(() => gameManager?.OnBetClicked());
-        if (raiseButton != null)
-            raiseButton.onClick.AddListener(() => gameManager?.OnRaiseClicked());
-        if (allInButton != null)
-            allInButton.onClick.AddListener(() => gameManager?.OnAllInClicked());
+    // -------------------------------------------------------------------------
+    // Reference validation
+    // -------------------------------------------------------------------------
+
+    private void ValidateReferences()
+    {
+        if (playerPanels == null || playerPanels.Length == 0)
+            Debug.LogWarning("[UIManager] playerPanels array is empty.", this);
+
+        if (communityCardsDisplay == null)
+            Debug.LogWarning("[UIManager] communityCardsDisplay is not assigned.", this);
+
+        if (centerPotDisplay == null)
+            Debug.LogWarning("[UIManager] centerPotDisplay is not assigned.", this);
+
+        if (actionBar == null)
+            Debug.LogWarning("[UIManager] actionBar is not assigned.", this);
+
+        if (raiseControl == null)
+            Debug.LogWarning("[UIManager] raiseControl is not assigned.", this);
+
+        if (showdownUI == null)
+            Debug.LogWarning("[UIManager] showdownUI is not assigned.", this);
+
+        if (winnerCelebration == null)
+            Debug.LogWarning("[UIManager] winnerCelebration is not assigned.", this);
+
+        if (gameOverUI == null)
+            Debug.LogWarning("[UIManager] gameOverUI is not assigned.", this);
+
+        if (cardDealerManager == null)
+            Debug.LogWarning("[UIManager] cardDealerManager is not assigned.", this);
+
+        if (potAnimator == null)
+            Debug.LogWarning("[UIManager] potAnimator is not assigned.", this);
+
+        if (chipPool == null)
+            Debug.LogWarning("[UIManager] chipPool is not assigned.", this);
     }
 
     // -------------------------------------------------------------------------
     // Theme distribution
     // -------------------------------------------------------------------------
 
-    /// <summary>
-    /// Applies the loaded UITheme to all child components that expose a public
-    /// <c>theme</c> field. Uses reflection-free direct assignment where possible.
-    /// Requirements: 1.3, 1.4
-    /// </summary>
     private void ApplyThemeToChildren()
     {
         if (theme == null) return;
 
-        // PlayerUIPanels
-        if (playerPanels != null)
-        {
-            foreach (var panel in playerPanels)
-            {
-                if (panel != null)
-                    SetThemeOnComponent(panel);
-            }
-        }
+        SetTheme(centerPotDisplay);
+        SetTheme(actionBar);
+        SetTheme(showdownUI);
+        SetTheme(winnerCelebration);
+        SetTheme(gameOverUI);
+        SetTheme(cardDealerManager);
+        SetTheme(potAnimator);
+        SetTheme(raiseControl);
 
-        // New components
-        SetThemeOnComponent(centerPotDisplay);
-        SetThemeOnComponent(actionBar);
-        SetThemeOnComponent(showdownUI);
-        SetThemeOnComponent(winnerCelebration);
-        SetThemeOnComponent(gameOverUI);
-        SetThemeOnComponent(cardDealerManager);
-        SetThemeOnComponent(potAnimator);
+        if (playerPanels != null)
+            foreach (var panel in playerPanels)
+                SetTheme(panel);
     }
 
-    /// <summary>
-    /// Sets the <c>theme</c> serialized field on a MonoBehaviour via reflection.
-    /// Logs a warning if the component is null; silently skips if it has no theme field.
-    /// </summary>
-    private void SetThemeOnComponent(MonoBehaviour component)
+    private void SetTheme(MonoBehaviour component)
     {
         if (component == null) return;
 
@@ -146,12 +148,8 @@ public class UIManager : MonoBehaviour
             System.Reflection.BindingFlags.NonPublic |
             System.Reflection.BindingFlags.Public);
 
-        if (field != null && field.FieldType == typeof(UITheme))
-        {
-            // Only overwrite if the field is currently null (don't stomp Inspector assignments)
-            if (field.GetValue(component) == null)
-                field.SetValue(component, theme);
-        }
+        if (field != null && field.FieldType == typeof(UITheme) && field.GetValue(component) == null)
+            field.SetValue(component, theme);
     }
 
     // -------------------------------------------------------------------------
@@ -159,26 +157,16 @@ public class UIManager : MonoBehaviour
     // -------------------------------------------------------------------------
 
     /// <summary>
-    /// Enables or disables the human player's action buttons.
-    /// Delegates to ActionBar when available; falls back to legacy buttons.
+    /// Enables or disables the human player's action controls.
     /// </summary>
     public void EnablePlayerActions(bool enable)
     {
-        // Delegate to ActionBar
-        if (actionBar != null)
-        {
-            if (!enable)
-                StartCoroutine(actionBar.Hide());
-            // Show is triggered by UpdateGameState when it's the human's turn
-        }
+        if (actionBar == null) return;
 
-        // Legacy fallback
-        if (foldButton != null)   foldButton.interactable   = enable;
-        if (checkButton != null)  checkButton.interactable  = enable;
-        if (callButton != null)   callButton.interactable   = enable;
-        if (betButton != null)    betButton.interactable    = enable;
-        if (raiseButton != null)  raiseButton.interactable  = enable;
-        if (allInButton != null)  allInButton.interactable  = enable;
+        if (enable)
+            StartCoroutine(actionBar.Show());
+        else
+            StartCoroutine(actionBar.Hide());
     }
 
     /// <summary>
@@ -189,50 +177,30 @@ public class UIManager : MonoBehaviour
     {
         if (state == null) return;
 
-        // Clear player actions at the start of a new betting round
         if (state.Phase != lastPhase)
         {
             ClearAllPlayerActions();
             lastPhase = state.Phase;
         }
 
-        // --- Pot display ---
         UpdatePotDisplay(state);
-
-        // --- Phase display ---
         UpdatePhaseDisplay(state);
-
-        // --- Community cards ---
         UpdateCommunityCards(state, false);
-
-        // --- Player panels (normal mode — only show human cards) ---
         UpdatePlayerPanels(state, false);
-
-        // --- Button / action bar states ---
         UpdateButtonStates(state);
     }
 
     /// <summary>
-    /// Updates all UI elements for showdown mode — all active (non-folded) players'
-    /// hole cards are shown face-up.
+    /// Updates all UI elements for showdown mode — all active players' hole cards shown face-up.
     /// </summary>
     public void UpdateGameStateShowdown(GameState state)
     {
         if (state == null) return;
 
-        // --- Pot display ---
         UpdatePotDisplay(state);
-
-        // --- Phase display ---
         UpdatePhaseDisplay(state);
-
-        // --- Community cards ---
         UpdateCommunityCards(state, true);
-
-        // --- Player panels (showdown mode — show all active players' cards) ---
         UpdatePlayerPanels(state, true);
-
-        // --- Button / action bar states ---
         UpdateButtonStates(state);
     }
 
@@ -243,17 +211,11 @@ public class UIManager : MonoBehaviour
     {
         if (playerPanels == null || seatIndex < 0 || seatIndex >= playerPanels.Length)
         {
-            Debug.LogWarning($"[UIManager] ShowPlayerAction: seatIndex {seatIndex} is out of range.");
+            Debug.LogWarning($"[UIManager] ShowPlayerAction: seatIndex {seatIndex} out of range.");
             return;
         }
 
-        if (playerPanels[seatIndex] == null)
-        {
-            Debug.LogWarning($"[UIManager] ShowPlayerAction: playerPanels[{seatIndex}] is null.");
-            return;
-        }
-
-        playerPanels[seatIndex].ShowAction(action, amount);
+        playerPanels[seatIndex]?.ShowAction(action, amount);
     }
 
     /// <summary>
@@ -293,41 +255,19 @@ public class UIManager : MonoBehaviour
 
     private void UpdatePotDisplay(GameState state)
     {
-        decimal totalPot = state.TotalContributions.Values.Sum();
+        if (centerPotDisplay == null) return;
 
-        // Delegate to CenterPotDisplay
-        if (centerPotDisplay != null)
-        {
-            centerPotDisplay.SetPot(totalPot);
-        }
-        else if (potText != null)
-        {
-            // Legacy fallback
-            potText.text = $"POT: ${totalPot}";
-        }
+        decimal totalPot = state.TotalContributions.Values.Sum();
+        centerPotDisplay.SetPot(totalPot);
     }
 
     private void UpdatePhaseDisplay(GameState state)
     {
-        // Delegate to CenterPotDisplay
-        if (centerPotDisplay != null)
-        {
-            centerPotDisplay.SetPhase(state.Phase);
-            bool handInProgress = !state.HandComplete && state.Phase != GamePhase.NotStarted;
-            centerPotDisplay.SetHandInProgress(handInProgress);
-        }
-        else if (phaseText != null)
-        {
-            // Legacy fallback
-            phaseText.text = $"{state.Phase}";
-        }
+        if (centerPotDisplay == null) return;
 
-        // Legacy start hand button
-        if (startHandButton != null)
-        {
-            bool handActive = !state.HandComplete && state.Phase != GamePhase.NotStarted;
-            startHandButton.interactable = !handActive;
-        }
+        centerPotDisplay.SetPhase(state.Phase);
+        bool handInProgress = !state.HandComplete && state.Phase != GamePhase.NotStarted;
+        centerPotDisplay.SetHandInProgress(handInProgress);
     }
 
     private void UpdateCommunityCards(GameState state, bool isShowdown)
@@ -355,12 +295,7 @@ public class UIManager : MonoBehaviour
             var player = state.Players[i];
             bool isActive = state.CurrentSeatToAct == i;
             bool isDealer = state.DealerSeat == i;
-
-            bool showCards;
-            if (isShowdown)
-                showCards = !player.IsFolded;
-            else
-                showCards = (i == 0); // Only show human player's cards in normal play
+            bool showCards = isShowdown ? !player.IsFolded : (i == 0);
 
             decimal currentRoundBet = 0;
             if (state.RoundState != null && !state.HandComplete)
@@ -372,72 +307,32 @@ public class UIManager : MonoBehaviour
 
     private void UpdateButtonStates(GameState state)
     {
-        bool handActive = !state.HandComplete && state.Phase != GamePhase.NotStarted;
+        if (actionBar == null) return;
+
         bool isHumanTurn = gameManager != null && gameManager.IsHumanTurn();
+        actionBar.UpdateFromGameState(state, isHumanTurn);
 
-        // Delegate to ActionBar
-        if (actionBar != null)
+        // Update call amount label
+        if (isHumanTurn && !state.HandComplete && state.RoundState != null)
         {
-            actionBar.UpdateFromGameState(state, isHumanTurn);
-
-            // Update call amount label
-            if (isHumanTurn && handActive && state.RoundState != null)
-            {
-                var player = state.GetPlayerBySeat(0);
-                if (player != null)
-                {
-                    decimal callAmount = state.RoundState.CurrentBet - state.RoundState.GetContribution(player.Id);
-                    if (callAmount > 0)
-                        actionBar.SetCallAmount(callAmount);
-                }
-            }
-        }
-
-        // Legacy button fallback
-        if (foldButton != null)   foldButton.interactable   = handActive && isHumanTurn;
-        if (allInButton != null)  allInButton.interactable  = handActive && isHumanTurn;
-        if (startHandButton != null) startHandButton.interactable = !handActive;
-
-        if (handActive && isHumanTurn)
-        {
-            var round  = state.RoundState;
             var player = state.GetPlayerBySeat(0);
-            if (round != null && player != null)
+            if (player != null)
             {
-                decimal contribution = round.GetContribution(player.Id);
-                decimal currentBet   = round.CurrentBet;
-                bool hasBetToCall    = currentBet > contribution;
-
-                if (checkButton != null)  checkButton.interactable  = !hasBetToCall;
-                if (callButton != null)   callButton.interactable   = hasBetToCall;
-                if (betButton != null)    betButton.interactable    = !hasBetToCall;
-                if (raiseButton != null)  raiseButton.interactable  = hasBetToCall;
+                decimal callAmount = state.RoundState.CurrentBet - state.RoundState.GetContribution(player.Id);
+                if (callAmount > 0)
+                    actionBar.SetCallAmount(callAmount);
             }
         }
-        else
-        {
-            if (checkButton != null)  checkButton.interactable  = false;
-            if (callButton != null)   callButton.interactable   = false;
-            if (betButton != null)    betButton.interactable    = false;
-            if (raiseButton != null)  raiseButton.interactable  = false;
-        }
 
-        // Hide raise control when it's not the human's turn
+        // Hide raise control when not human's turn
         if (raiseControl != null && !isHumanTurn)
             raiseControl.Hide();
     }
 
-    /// <summary>
-    /// Clears all player action labels — called at the start of each new betting round.
-    /// </summary>
     private void ClearAllPlayerActions()
     {
         if (playerPanels == null) return;
-
         foreach (var panel in playerPanels)
-        {
-            if (panel != null)
-                panel.ClearAction();
-        }
+            panel?.ClearAction();
     }
 }
