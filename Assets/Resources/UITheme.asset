@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1031d88975ffaf443836fa831df83ac1, type: 3}
+  m_Name: UITheme
+  m_EditorClassIdentifier: Assembly-CSharp::UITheme
+  primaryBackground: {r: 0.102, g: 0.227, b: 0.165, a: 1}
+  panelBackground: {r: 0.18, g: 0.06, b: 0.08, a: 0.82}
+  accentGold: {r: 1, g: 0.843, b: 0, a: 1}
+  accentRed: {r: 0.75, g: 0.15, b: 0.15, a: 1}
+  accentBlue: {r: 0.15, g: 0.35, b: 0.75, a: 1}
+  accentOrange: {r: 0.9, g: 0.45, b: 0.05, a: 1}
+  textPrimary: {r: 1, g: 1, b: 1, a: 1}
+  textMuted: {r: 0.55, g: 0.55, b: 0.55, a: 1}
+  glowGold: {r: 1, g: 0.843, b: 0, a: 0.85}
+  titleFont: {fileID: 0}
+  labelFont: {fileID: 0}
+  valueFont: {fileID: 0}
+  titleFontMinSize: 36
+  labelFontMinSize: 18
+  valueFontMinSize: 14
+  fadeTransitionDuration: 0.4
+  buttonHoverDuration: 0.15
+  actionBarShowDuration: 0.25
+  cardDealDuration: 0.35
+  cardFlipHalfDuration: 0.15
+  chipFlyDuration: 0.6
+  potCollectDuration: 0.8
+  winnerSlideDuration: 0.5
+  glowPulseSpeed: 2
+  panelCornerRadius: 8
+  panelAlphaMin: 0.75
+  panelAlphaMax: 0.9
