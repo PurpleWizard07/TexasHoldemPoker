@@ -145,8 +145,7 @@ public class PokerUISetup : EditorWindow
         // --- CenterPotDisplay ---
         var cpdGO = CreateChildGO(canvasGO, "CenterPotDisplay");
         SetAnchors(cpdGO, new Vector2(0.35f, 0.42f), new Vector2(0.65f, 0.58f));
-        // TODO: Add cpdGO.AddComponent<CenterPotDisplay>() once script is created (Task 10.1).
-        Debug.Log("[PokerUISetup] CenterPotDisplay component skipped — script not yet created (Task 10.1).");
+        cpdGO.AddComponent<CenterPotDisplay>();
 
         // --- ActionBar ---
         var actionBarGO = CreateChildGO(canvasGO, "ActionBar");
