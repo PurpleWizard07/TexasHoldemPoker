@@ -1,357 +1,363 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using TMPro;
 
 /// <summary>
-/// Animates pot transfer with flying chip effects.
+/// Animates chip sprites flying between player panels and the pot display.
+///
+/// AnimateBetToPot  — flies chips from a player panel position to the pot along an arc,
+///                    completing within 0.6 seconds (Req 6.1).
+/// AnimatePotToWinner — flies chips from the pot to the winner panel in a burst pattern,
+///                    completing within 1.0 second (Req 6.2).
+///
+/// Animations are queued so they never overlap visually (Req 6.6).
+/// After each animation all rented chips are returned to the pool so
+/// ChipPool.rentedCount equals zero (Property 16).
+/// A chip-clink audio cue is played per landing chip when AudioSource and
+/// AudioClip are assigned (Req 6.5).
+///
+/// Requirements: 6.1, 6.2, 6.5, 6.6
 /// </summary>
 public class PotAnimator : MonoBehaviour
 {
-    [Header("Animation Settings")]
-    [SerializeField] private float animationDuration = 1.5f;
-    [SerializeField] private AnimationCurve movementCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
-    
-    [Header("References")]
-    [SerializeField] private Transform centerPotPosition;
-    [SerializeField] private TextMeshProUGUI centerPotText;
-    [SerializeField] private ChipStackAnimator chipAnimator;
-    
-    [Header("Settings")]
-    [SerializeField] private bool useChipAnimations = true;
+    // -------------------------------------------------------------------------
+    // Serialized fields
+    // -------------------------------------------------------------------------
 
-    private void Awake()
-    {
-        EnsureChipAnimatorSetup();
-    }
+    [Header("Pot Position")]
+    [Tooltip("World-space position of the pot display (center of table).")]
+    [SerializeField] private Transform potTransform;
 
-    private void Start()
-    {
-        // Double-check setup in Start (after all Awake calls)
-        EnsureChipAnimatorSetup();
-    }
+    [Header("Audio (optional)")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip chipClinkClip;
 
-    private void EnsureChipAnimatorSetup()
+    [Header("Arc Settings")]
+    [SerializeField] private float arcHeight = 120f;
+
+    // -------------------------------------------------------------------------
+    // Private state
+    // -------------------------------------------------------------------------
+
+    // Queue of pending animation coroutines (ensures no overlap — Req 6.6)
+    private readonly Queue<IEnumerator> _animationQueue = new Queue<IEnumerator>();
+    private bool _isPlaying;
+
+    // Greedy denomination list, highest first (matches ChipStack.CalculateChips)
+    private static readonly int[] Denominations = { 10000, 5000, 1000, 500, 100, 50, 25, 20, 10, 5, 1 };
+    private const int MaxChips = 10;
+
+    // Timing constants
+    private const float BetToPotDuration   = 0.6f;  // Req 6.1
+    private const float PotToWinnerDuration = 1.0f; // Req 6.2
+    private const float ChipStaggerInterval = 0.05f; // stagger between individual chips
+
+    // -------------------------------------------------------------------------
+    // Public API
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Enqueues a bet-to-pot animation.
+    /// Chips fly from <paramref name="fromPanelPosition"/> to the pot along an arc,
+    /// completing within 0.6 seconds. Animations are queued so they do not overlap.
+    /// After completion all rented chips are returned to <paramref name="pool"/>.
+    /// Requirements: 6.1, 6.6
+    /// </summary>
+    public void AnimateBetToPot(Vector3 fromPanelPosition, decimal amount, ChipPool pool)
     {
-        // Auto-find or create ChipStackAnimator if chip animations are enabled
-        if (useChipAnimations && chipAnimator == null)
+        if (pool == null)
         {
-            chipAnimator = FindFirstObjectByType<ChipStackAnimator>();
-            
-            if (chipAnimator == null)
-            {
-                // CRITICAL: ChipStackAnimator creates UI elements, so it MUST be under a Canvas!
-                Canvas canvas = FindFirstObjectByType<Canvas>();
-                if (canvas == null)
-                {
-                    Debug.LogError("No Canvas found in scene! ChipStackAnimator needs a Canvas parent for UI elements to render!");
-                    return;
-                }
-                
-                GameObject animObj = new GameObject("ChipStackAnimator");
-                animObj.transform.SetParent(canvas.transform, false);
-                chipAnimator = animObj.AddComponent<ChipStackAnimator>();
-            }
-            else
-            {
-                // Verify it's under a Canvas
-                Canvas parentCanvas = chipAnimator.GetComponentInParent<Canvas>();
-                if (parentCanvas == null)
-                {
-                    Debug.LogWarning("ChipStackAnimator is not under a Canvas! Moving it to Canvas...");
-                    Canvas canvas = FindFirstObjectByType<Canvas>();
-                    if (canvas != null)
-                    {
-                        chipAnimator.transform.SetParent(canvas.transform, false);
-                    }
-                }
-            }
+            Debug.LogWarning("[PotAnimator] AnimateBetToPot called with null ChipPool — skipping.");
+            return;
         }
-        
-        // Warn if chip animations are enabled but setup failed
-        if (useChipAnimations && chipAnimator == null)
-        {
-            Debug.LogWarning("PotAnimator: useChipAnimations is TRUE but chipAnimator is still null! Chip animations may not work.");
-        }
-        
-        // Warn if centerPotPosition is not set
-        if (centerPotPosition == null)
-        {
-            Debug.LogWarning("PotAnimator: centerPotPosition is not assigned! Pot animations will not work. Assign it in the Inspector.");
-        }
+
+        Vector3 toPosition = GetPotPosition();
+        _animationQueue.Enqueue(RunBetToPot(fromPanelPosition, toPosition, amount, pool));
+        TryStartQueue();
     }
 
     /// <summary>
-    /// Animate chips flying from a bet position to the center pot.
+    /// Enqueues a pot-to-winner animation.
+    /// Chips fly from the pot to <paramref name="toWinnerPosition"/> in a burst pattern,
+    /// completing within 1.0 second. Animations are queued so they do not overlap.
+    /// After completion all rented chips are returned to <paramref name="pool"/>.
+    /// Requirements: 6.2, 6.6
     /// </summary>
-    public IEnumerator AnimateBetToPot(Transform betPosition, decimal amount)
+    public void AnimatePotToWinner(Vector3 toWinnerPosition, decimal amount, ChipPool pool)
     {
-        if (betPosition == null || centerPotPosition == null)
-            yield break;
-
-        if (useChipAnimations && chipAnimator != null)
+        if (pool == null)
         {
-            yield return StartCoroutine(chipAnimator.AnimateChipsMoving(
-                betPosition.position,
-                centerPotPosition.position,
-                amount
+            Debug.LogWarning("[PotAnimator] AnimatePotToWinner called with null ChipPool — skipping.");
+            return;
+        }
+
+        Vector3 fromPosition = GetPotPosition();
+        _animationQueue.Enqueue(RunPotToWinner(fromPosition, toWinnerPosition, amount, pool));
+        TryStartQueue();
+    }
+
+    // -------------------------------------------------------------------------
+    // Queue management
+    // -------------------------------------------------------------------------
+
+    private void TryStartQueue()
+    {
+        if (!_isPlaying && _animationQueue.Count > 0)
+        {
+            StartCoroutine(ProcessQueue());
+        }
+    }
+
+    private IEnumerator ProcessQueue()
+    {
+        _isPlaying = true;
+        while (_animationQueue.Count > 0)
+        {
+            IEnumerator next = _animationQueue.Dequeue();
+            yield return StartCoroutine(next);
+        }
+        _isPlaying = false;
+    }
+
+    // -------------------------------------------------------------------------
+    // Bet-to-pot animation (Req 6.1)
+    // -------------------------------------------------------------------------
+
+    private IEnumerator RunBetToPot(Vector3 from, Vector3 to, decimal amount, ChipPool pool)
+    {
+        List<int> chips = CalculateChips(amount);
+        int count = chips.Count;
+
+        // Per-chip flight time budget: spread chips across the 0.6s window
+        // Each chip starts staggered but all must land within 0.6s total.
+        float perChipDuration = Mathf.Max(0.25f, BetToPotDuration - (count - 1) * ChipStaggerInterval);
+
+        // Rent all chips up front
+        var rentedChips = new List<GameObject>(count);
+        for (int i = 0; i < count; i++)
+        {
+            GameObject chip = pool.Rent(chips[i]);
+            if (chip != null)
+            {
+                chip.transform.position = from;
+                rentedChips.Add(chip);
+            }
+        }
+
+        // Launch each chip with a small stagger
+        var flyCoroutines = new List<Coroutine>(rentedChips.Count);
+        for (int i = 0; i < rentedChips.Count; i++)
+        {
+            float delay = i * ChipStaggerInterval;
+            flyCoroutines.Add(StartCoroutine(
+                FlyChipArc(rentedChips[i], from, to, perChipDuration, delay, onLand: PlayClinkAudio)
             ));
         }
+
+        // Wait for the full animation window
+        yield return new WaitForSeconds(BetToPotDuration);
+
+        // Stop any still-running coroutines and snap chips to destination
+        for (int i = 0; i < flyCoroutines.Count; i++)
+        {
+            if (flyCoroutines[i] != null)
+                StopCoroutine(flyCoroutines[i]);
+            if (rentedChips[i] != null)
+                rentedChips[i].transform.position = to;
+        }
+
+        // Return all chips — rentedCount must equal zero after this (Property 16)
+        foreach (var chip in rentedChips)
+            pool.Return(chip);
+    }
+
+    // -------------------------------------------------------------------------
+    // Pot-to-winner animation (Req 6.2)
+    // -------------------------------------------------------------------------
+
+    private IEnumerator RunPotToWinner(Vector3 from, Vector3 to, decimal amount, ChipPool pool)
+    {
+        List<int> chips = CalculateChips(amount);
+        int count = chips.Count;
+
+        // Burst: chips fan out from the pot then converge on the winner panel.
+        // Each chip gets a random radial offset at the start to create the burst look.
+        float perChipDuration = Mathf.Max(0.5f, PotToWinnerDuration - (count - 1) * ChipStaggerInterval);
+
+        var rentedChips = new List<GameObject>(count);
+        for (int i = 0; i < count; i++)
+        {
+            GameObject chip = pool.Rent(chips[i]);
+            if (chip != null)
+            {
+                chip.transform.position = from;
+                rentedChips.Add(chip);
+            }
+        }
+
+        var flyCoroutines = new List<Coroutine>(rentedChips.Count);
+        for (int i = 0; i < rentedChips.Count; i++)
+        {
+            float delay = i * ChipStaggerInterval;
+            // Burst offset: spread chips radially around the pot position
+            float angle = (360f / count) * i * Mathf.Deg2Rad;
+            Vector3 burstFrom = from + new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0f) * 30f;
+
+            flyCoroutines.Add(StartCoroutine(
+                FlyChipArc(rentedChips[i], burstFrom, to, perChipDuration, delay, onLand: PlayClinkAudio)
+            ));
+        }
+
+        // Wait for the full animation window
+        yield return new WaitForSeconds(PotToWinnerDuration);
+
+        // Stop any still-running coroutines and snap chips to destination
+        for (int i = 0; i < flyCoroutines.Count; i++)
+        {
+            if (flyCoroutines[i] != null)
+                StopCoroutine(flyCoroutines[i]);
+            if (rentedChips[i] != null)
+                rentedChips[i].transform.position = to;
+        }
+
+        // Return all chips — rentedCount must equal zero after this (Property 16)
+        foreach (var chip in rentedChips)
+            pool.Return(chip);
+    }
+
+    // -------------------------------------------------------------------------
+    // Single-chip arc flight
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Moves a single chip along a parabolic arc from <paramref name="from"/> to
+    /// <paramref name="to"/> over <paramref name="duration"/> seconds, after an
+    /// optional <paramref name="delay"/>. Invokes <paramref name="onLand"/> when
+    /// the chip reaches its destination.
+    /// </summary>
+    private IEnumerator FlyChipArc(GameObject chip, Vector3 from, Vector3 to,
+        float duration, float delay, System.Action onLand)
+    {
+        if (chip == null) yield break;
+
+        if (delay > 0f)
+            yield return new WaitForSeconds(delay);
+
+        if (chip == null) yield break;
+
+        chip.transform.position = from;
+
+        // Delegate arc movement to TweenHelper
+        yield return StartCoroutine(TweenHelper.ArcMove(chip.transform, from, to, arcHeight, duration));
+
+        onLand?.Invoke();
+    }
+
+    // -------------------------------------------------------------------------
+    // Audio
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Plays the chip-clink audio cue if both AudioSource and AudioClip are assigned.
+    /// Requirement 6.5
+    /// </summary>
+    private void PlayClinkAudio()
+    {
+        if (audioSource != null && chipClinkClip != null)
+        {
+            audioSource.PlayOneShot(chipClinkClip);
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Chip decomposition (greedy, matches ChipStack.CalculateChips)
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Greedy decomposition of <paramref name="amount"/> into chip denominations,
+    /// capped at <see cref="MaxChips"/>. Returns denomination values highest-first.
+    /// Requirements: 6.3
+    /// </summary>
+    private static List<int> CalculateChips(decimal amount)
+    {
+        var result = new List<int>();
+        decimal remaining = amount;
+
+        foreach (int denom in Denominations)
+        {
+            if (remaining <= 0m) break;
+            int count = (int)(remaining / denom);
+            for (int i = 0; i < count && result.Count < MaxChips; i++)
+            {
+                result.Add(denom);
+            }
+            remaining -= (int)(remaining / denom) * denom;
+        }
+
+        // Guarantee at least one chip so an animation always plays
+        if (result.Count == 0)
+            result.Add(1);
+
+        return result;
+    }
+
+    // -------------------------------------------------------------------------
+    // Backward-compatible overloads (used by PokerGameManager legacy calls)
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Legacy overload: animate pot-to-winner using a Transform target.
+    /// Finds the ChipPool in the scene automatically.
+    /// </summary>
+    public IEnumerator AnimatePotToWinner(Transform winnerTransform, decimal amount)
+    {
+        if (winnerTransform == null) yield break;
+        ChipPool pool = FindChipPool();
+        if (pool == null) { yield return new WaitForSeconds(PotToWinnerDuration); yield break; }
+        AnimatePotToWinner(winnerTransform.position, amount, pool);
+        yield return new WaitForSeconds(PotToWinnerDuration + 0.1f);
     }
 
     /// <summary>
-    /// Animate all player bets flying to center pot.
+    /// Legacy overload: animate multiple bets to pot from saved positions.
+    /// Finds the ChipPool in the scene automatically.
     /// </summary>
-    public IEnumerator AnimateCollectBets(BetDisplay[] betDisplays)
+    public IEnumerator AnimateBetsFromPositions(System.Collections.Generic.List<(Transform position, decimal amount)> bets)
     {
-        if (betDisplays == null)
-        {
-            yield break;
-        }
-        
-        if (!useChipAnimations)
-        {
-            yield break;
-        }
-        
-        if (chipAnimator == null)
-        {
-            chipAnimator = FindFirstObjectByType<ChipStackAnimator>();
-            
-            if (chipAnimator == null)
-            {
-                Canvas canvas = FindFirstObjectByType<Canvas>();
-                if (canvas == null)
-                {
-                    Debug.LogError("No Canvas found! Cannot create ChipStackAnimator!");
-                    yield break;
-                }
-                
-                GameObject animObj = new GameObject("ChipStackAnimator");
-                animObj.transform.SetParent(canvas.transform, false);
-                chipAnimator = animObj.AddComponent<ChipStackAnimator>();
-            }
-        }
-        
-        // Start all animations at once (they run in parallel)
-        foreach (var betDisplay in betDisplays)
-        {
-            if (betDisplay != null && betDisplay.GetCurrentBet() > 0)
-            {
-                StartCoroutine(chipAnimator.AnimateChipsMoving(
-                    betDisplay.transform.position,
-                    centerPotPosition.position,
-                    betDisplay.GetCurrentBet()
-                ));
-            }
-        }
+        if (bets == null || bets.Count == 0) yield break;
+        ChipPool pool = FindChipPool();
+        if (pool == null) { yield return new WaitForSeconds(BetToPotDuration + 0.1f); yield break; }
 
-        // Wait for animations to complete
-        yield return new WaitForSeconds(0.8f);
-    }
-
-    /// <summary>
-    /// Animate chips from saved positions to center pot.
-    /// Used when bet amounts are captured before UI update clears them.
-    /// </summary>
-    public IEnumerator AnimateBetsFromPositions(List<(Transform position, decimal amount)> bets)
-    {
-        if (bets == null || bets.Count == 0)
-        {
-            yield break;
-        }
-        
-        if (centerPotPosition == null)
-        {
-            yield break;
-        }
-        
-        // Ensure we have chip animator
-        if (chipAnimator == null)
-        {
-            chipAnimator = FindFirstObjectByType<ChipStackAnimator>();
-            if (chipAnimator == null)
-            {
-                Canvas canvas = FindFirstObjectByType<Canvas>();
-                if (canvas == null)
-                {
-                    Debug.LogError("No Canvas found! Cannot create ChipStackAnimator!");
-                    yield break;
-                }
-                
-                GameObject animObj = new GameObject("ChipStackAnimator");
-                animObj.transform.SetParent(canvas.transform, false);
-                chipAnimator = animObj.AddComponent<ChipStackAnimator>();
-            }
-        }
-        
-        // Start all animations at once
         foreach (var (position, amount) in bets)
         {
             if (position != null && amount > 0)
-            {
-                StartCoroutine(chipAnimator.AnimateChipsMoving(
-                    position.position,
-                    centerPotPosition.position,
-                    amount
-                ));
-            }
+                AnimateBetToPot(position.position, amount, pool);
         }
-        
-        // Wait for animations
-        yield return new WaitForSeconds(0.8f);
+
+        // Wait for the longest possible queued animation to finish
+        yield return new WaitForSeconds(BetToPotDuration + bets.Count * ChipStaggerInterval + 0.1f);
     }
 
-    public IEnumerator AnimatePotToWinner(Transform winnerPosition, decimal amount)
+    private ChipPool FindChipPool()
     {
-        if (centerPotPosition == null || winnerPosition == null)
-        {
-            yield break;
-        }
-
-        // Ensure chip animator is set up if chip animations are enabled
-        if (useChipAnimations && chipAnimator == null)
-        {
-            chipAnimator = FindFirstObjectByType<ChipStackAnimator>();
-            
-            if (chipAnimator == null)
-            {
-                // CRITICAL: Must be under a Canvas for UI elements to render!
-                Canvas canvas = FindFirstObjectByType<Canvas>();
-                if (canvas == null)
-                {
-                    Debug.LogError("No Canvas found! ChipStackAnimator cannot create UI elements without a Canvas parent!");
-                    yield break;
-                }
-                
-                GameObject animObj = new GameObject("ChipStackAnimator");
-                animObj.transform.SetParent(canvas.transform, false);
-                chipAnimator = animObj.AddComponent<ChipStackAnimator>();
-            }
-        }
-
-        // Use chip animations
-        if (useChipAnimations && chipAnimator != null)
-        {
-            yield return StartCoroutine(chipAnimator.AnimatePotToWinner(
-                centerPotPosition,
-                winnerPosition,
-                amount
-            ));
-        }
-        else
-        {
-            // Fallback to text animation
-            GameObject potVisual = CreatePotVisual(amount);
-            if (potVisual != null)
-            {
-                yield return StartCoroutine(MovePotVisual(potVisual, centerPotPosition.position, winnerPosition.position));
-                Destroy(potVisual);
-            }
-        }
-
-        // Update center pot display to show 0
-        if (centerPotText != null)
-        {
-            centerPotText.text = "POT: $0";
-        }
+        var pool = FindFirstObjectByType<ChipPool>();
+        if (pool == null)
+            Debug.LogWarning("[PotAnimator] No ChipPool found in scene — chip animation skipped.");
+        return pool;
     }
 
-    private GameObject CreatePotVisual(decimal amount)
-    {
-        GameObject potVisual = new GameObject("PotTransfer");
-        potVisual.transform.SetParent(transform);
-        
-        var textComponent = potVisual.AddComponent<TextMeshProUGUI>();
-        textComponent.text = $"${amount}";
-        textComponent.fontSize = 24;
-        textComponent.color = Color.yellow;
-        textComponent.alignment = TextAlignmentOptions.Center;
-        
-        potVisual.transform.position = centerPotPosition.position;
-        
-        return potVisual;
-    }
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
 
-    private IEnumerator MovePotVisual(GameObject potVisual, Vector3 startPos, Vector3 endPos)
+    private Vector3 GetPotPosition()
     {
-        float elapsed = 0f;
-        
-        while (elapsed < animationDuration)
-        {
-            elapsed += Time.deltaTime;
-            float progress = elapsed / animationDuration;
-            float curveValue = movementCurve.Evaluate(progress);
-            
-            potVisual.transform.position = Vector3.Lerp(startPos, endPos, curveValue);
-            
-            float scale = 1f + Mathf.Sin(progress * Mathf.PI) * 0.2f;
-            potVisual.transform.localScale = Vector3.one * scale;
-            
-            yield return null;
-        }
-        
-        potVisual.transform.position = endPos;
-        potVisual.transform.localScale = Vector3.one;
-    }
+        if (potTransform != null)
+            return potTransform.position;
 
-    public IEnumerator AnimateStackUpdate(Transform playerPosition, decimal oldAmount, decimal newAmount)
-    {
-        GameObject stackVisual = new GameObject("StackIncrease");
-        stackVisual.transform.SetParent(transform);
-        
-        var textComponent = stackVisual.AddComponent<TextMeshProUGUI>();
-        decimal increase = newAmount - oldAmount;
-        textComponent.text = $"+${increase}";
-        textComponent.fontSize = 28;
-        textComponent.fontStyle = FontStyles.Bold;
-        textComponent.color = new Color(0.2f, 1f, 0.2f, 1f);
-        textComponent.alignment = TextAlignmentOptions.Center;
-        textComponent.outlineWidth = 0.2f;
-        textComponent.outlineColor = Color.black;
-        
-        RectTransform rect = stackVisual.GetComponent<RectTransform>();
-        if (rect != null) rect.sizeDelta = new Vector2(200, 50);
-        
-        stackVisual.transform.position = playerPosition.position;
-        
-        Vector3 startPos = playerPosition.position;
-        Vector3 endPos = startPos + Vector3.up * 80f;
-        
-        float elapsed = 0f;
-        float duration = 2f;
-        
-        stackVisual.transform.localScale = Vector3.zero;
-        
-        while (elapsed < duration)
-        {
-            elapsed += Time.deltaTime;
-            float progress = elapsed / duration;
-            
-            float moveProgress = Mathf.SmoothStep(0, 1, progress);
-            stackVisual.transform.position = Vector3.Lerp(startPos, endPos, moveProgress);
-            
-            // Scale pop effect
-            float scale;
-            if (progress < 0.15f)
-                scale = Mathf.Lerp(0, 1.3f, progress / 0.15f);
-            else if (progress < 0.25f)
-                scale = Mathf.Lerp(1.3f, 1f, (progress - 0.15f) / 0.1f);
-            else
-                scale = 1f;
-            stackVisual.transform.localScale = Vector3.one * scale;
-            
-            // Fade out in last 40%
-            if (progress > 0.6f)
-            {
-                Color color = textComponent.color;
-                color.a = 1f - ((progress - 0.6f) / 0.4f);
-                textComponent.color = color;
-            }
-            
-            yield return null;
-        }
-        
-        Destroy(stackVisual);
+        // Fallback: screen center
+        return Camera.main != null
+            ? Camera.main.ScreenToWorldPoint(new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 10f))
+            : Vector3.zero;
     }
 }

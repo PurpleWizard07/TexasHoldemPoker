@@ -211,8 +211,7 @@ public class PokerUISetup : EditorWindow
         // --- PotAnimator ---
         var potAnimGO = new GameObject("PotAnimator");
         Undo.RegisterCreatedObjectUndo(potAnimGO, "Create PotAnimator");
-        // TODO: Add potAnimGO.AddComponent<PotAnimator>() once script is created (Task 10.3).
-        Debug.Log("[PokerUISetup] PotAnimator component skipped — script not yet created (Task 10.3).");
+        potAnimGO.AddComponent<PotAnimator>();
 
         // --- Six PlayerUIPanel instances around the table ---
         SetupPlayerPanels(canvasGO);
