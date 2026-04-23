@@ -28,11 +28,9 @@ public class ShowdownUI : MonoBehaviour
     [SerializeField] private ParticleSystem flashParticles;
     [SerializeField] private CanvasGroup screenFlashOverlay;
 
-    // Off-screen Y position used to park the winner panel above the visible area
-    private const float OffScreenTopY = 1200f;
-    // Center Y position for the winner panel when visible
-    private const float CenterY = 0f;
-    // Off-screen Y position used to slide the winner panel downward when dismissed
+    // Off-screen Y positions for slide animations
+    private const float OffScreenTopY    =  1200f;
+    private const float CenterY          =     0f;
     private const float OffScreenBottomY = -1200f;
 
     private Coroutine _showWinnerCoroutine;
@@ -44,18 +42,16 @@ public class ShowdownUI : MonoBehaviour
     {
         ValidateReferences();
 
-        // Load theme fallback
         if (theme == null)
         {
             theme = Resources.Load<UITheme>("UITheme");
             if (theme == null)
-                theme = UITheme.CreateDefault();
+                Debug.LogError("[ShowdownUI] UITheme asset not found at Resources/UITheme. Using null — some animations may be skipped.");
         }
     }
 
     private void Start()
     {
-        // Ensure panels start hidden
         if (winnerPanel != null)
             winnerPanel.SetActive(false);
 
@@ -68,32 +64,22 @@ public class ShowdownUI : MonoBehaviour
 
     private void ValidateReferences()
     {
-        if (winnerPanel == null)
-            Debug.LogWarning("[ShowdownUI] winnerPanel is not assigned.", this);
-        if (winnerPanelRect == null)
-            Debug.LogWarning("[ShowdownUI] winnerPanelRect is not assigned.", this);
-        if (winnerNameText == null)
-            Debug.LogWarning("[ShowdownUI] winnerNameText is not assigned.", this);
-        if (winnerAmountText == null)
-            Debug.LogWarning("[ShowdownUI] winnerAmountText is not assigned.", this);
-        if (winnerHandText == null)
-            Debug.LogWarning("[ShowdownUI] winnerHandText is not assigned.", this);
-        if (winnerPanelCG == null)
-            Debug.LogWarning("[ShowdownUI] winnerPanelCG is not assigned.", this);
-        if (countdownPanel == null)
-            Debug.LogWarning("[ShowdownUI] countdownPanel is not assigned.", this);
-        if (countdownText == null)
-            Debug.LogWarning("[ShowdownUI] countdownText is not assigned.", this);
-        if (flashParticles == null)
-            Debug.LogWarning("[ShowdownUI] flashParticles is not assigned.", this);
-        if (screenFlashOverlay == null)
-            Debug.LogWarning("[ShowdownUI] screenFlashOverlay is not assigned.", this);
+        if (winnerPanel == null)        Debug.LogWarning("[ShowdownUI] winnerPanel is not assigned.", this);
+        if (winnerPanelRect == null)    Debug.LogWarning("[ShowdownUI] winnerPanelRect is not assigned.", this);
+        if (winnerNameText == null)     Debug.LogWarning("[ShowdownUI] winnerNameText is not assigned.", this);
+        if (winnerAmountText == null)   Debug.LogWarning("[ShowdownUI] winnerAmountText is not assigned.", this);
+        if (winnerHandText == null)     Debug.LogWarning("[ShowdownUI] winnerHandText is not assigned.", this);
+        if (winnerPanelCG == null)      Debug.LogWarning("[ShowdownUI] winnerPanelCG is not assigned.", this);
+        if (countdownPanel == null)     Debug.LogWarning("[ShowdownUI] countdownPanel is not assigned.", this);
+        if (countdownText == null)      Debug.LogWarning("[ShowdownUI] countdownText is not assigned.", this);
+        if (flashParticles == null)     Debug.LogWarning("[ShowdownUI] flashParticles is not assigned.", this);
+        if (screenFlashOverlay == null) Debug.LogWarning("[ShowdownUI] screenFlashOverlay is not assigned.", this);
     }
 
     /// <summary>
     /// Slides the winner panel in from the top over 0.5s, populates all three text fields,
     /// triggers a white screen flash (30% opacity fading over 0.3s), and plays confetti particles.
-    /// When handName is "All Others Folded", displays it as-is without revealing hole cards.
+    /// When handName is "All Others Folded", displays it as-is (no hole card reveal).
     /// Requirements: 9.1, 9.2, 9.5
     /// </summary>
     public IEnumerator ShowWinner(string playerName, decimal amount, string handName)
@@ -110,35 +96,39 @@ public class ShowdownUI : MonoBehaviour
         if (winnerPanel == null || winnerPanelRect == null)
             yield break;
 
-        // Populate text fields before making the panel visible
-        if (winnerNameText != null)
-            winnerNameText.text = playerName;
+        // Populate text fields before activating the panel
+        if (winnerNameText != null)   winnerNameText.text   = playerName;
+        if (winnerAmountText != null) winnerAmountText.text = $"${amount:N0}";
+        if (winnerHandText != null)   winnerHandText.text   = handName;
 
-        if (winnerAmountText != null)
-            winnerAmountText.text = $"${amount:N0}";
-
-        if (winnerHandText != null)
-            winnerHandText.text = handName;
-
-        // Reset panel alpha and position it off-screen above
+        // Reset alpha and park panel off-screen above
         if (winnerPanelCG != null)
             winnerPanelCG.alpha = 1f;
 
         winnerPanelRect.anchoredPosition = new Vector2(winnerPanelRect.anchoredPosition.x, OffScreenTopY);
         winnerPanel.SetActive(true);
 
-        // Slide down to center
+        // Slide down to center — Req 9.1
         float slideDuration = theme != null ? theme.winnerSlideDuration : 0.5f;
         yield return StartCoroutine(
             TweenHelper.Slide(winnerPanelRect,
                 new Vector2(winnerPanelRect.anchoredPosition.x, CenterY),
                 slideDuration));
 
-        // Trigger screen flash and confetti in parallel
+        // Screen flash + confetti in parallel — Req 9.2
         StartCoroutine(PlayScreenFlash());
 
         if (flashParticles != null)
             flashParticles.Play();
+    }
+
+    /// <summary>
+    /// Convenience wrapper: shows the winner panel with "All Others Folded" as the hand name.
+    /// Card reveal is intentionally omitted per Req 9.5.
+    /// </summary>
+    public IEnumerator ShowFoldWinner(string playerName, decimal amount)
+    {
+        yield return StartCoroutine(ShowWinner(playerName, amount, "All Others Folded"));
     }
 
     /// <summary>
@@ -158,17 +148,17 @@ public class ShowdownUI : MonoBehaviour
         if (winnerPanel == null || winnerPanelRect == null || !winnerPanel.activeSelf)
             yield break;
 
-        float fadeDuration = theme != null ? theme.fadeTransitionDuration : 0.4f;
+        float slideDuration = theme != null ? theme.fadeTransitionDuration : 0.4f;
         yield return StartCoroutine(
             TweenHelper.Slide(winnerPanelRect,
                 new Vector2(winnerPanelRect.anchoredPosition.x, OffScreenBottomY),
-                fadeDuration));
+                slideDuration));
 
         winnerPanel.SetActive(false);
     }
 
     /// <summary>
-    /// Displays a countdown from 3 to 1, with a scale-pop animation per number.
+    /// Displays a countdown from 3 to 1 with a scale-pop animation per number.
     /// Requirement: 9.7
     /// </summary>
     public IEnumerator ShowCountdown()
@@ -194,11 +184,8 @@ public class ShowdownUI : MonoBehaviour
         for (int i = 3; i >= 1; i--)
         {
             countdownText.text = i.ToString();
-
-            // Scale-pop: peak at 1.4, duration 0.4s
+            // Scale-pop: peak 1.4×, 0.4s; hold remainder of the second
             yield return StartCoroutine(TweenHelper.ScalePop(countdownText.transform, 1.4f, 0.4f));
-
-            // Hold for the remainder of the second
             yield return new WaitForSeconds(0.6f);
         }
 
@@ -206,7 +193,7 @@ public class ShowdownUI : MonoBehaviour
     }
 
     /// <summary>
-    /// Fades out all showdown elements (winner panel canvas group) over 0.4s, then hides panels.
+    /// Fades out all showdown elements over 0.4s, then hides panels.
     /// Requirement: 9.6
     /// </summary>
     public IEnumerator FadeOutAll()
@@ -225,11 +212,8 @@ public class ShowdownUI : MonoBehaviour
         if (winnerPanelCG != null && winnerPanel != null && winnerPanel.activeSelf)
             yield return StartCoroutine(TweenHelper.Fade(winnerPanelCG, 0f, fadeDuration));
 
-        if (winnerPanel != null)
-            winnerPanel.SetActive(false);
-
-        if (countdownPanel != null)
-            countdownPanel.SetActive(false);
+        if (winnerPanel != null)    winnerPanel.SetActive(false);
+        if (countdownPanel != null) countdownPanel.SetActive(false);
     }
 
     /// <summary>
