@@ -95,6 +95,16 @@ public class GameOverUI : MonoBehaviour
     // ── Public API ───────────────────────────────────────────────────────────
 
     /// <summary>
+    /// Backward-compatible overload called by PokerGameManager.
+    /// Determines playerWon by comparing winnerName to "You".
+    /// </summary>
+    public void Show(string winnerName, decimal finalStack)
+    {
+        bool playerWon = winnerName == "You";
+        StartCoroutine(ShowGameOver(playerWon, winnerName, finalStack));
+    }
+
+    /// <summary>
     /// Animates the game over screen in over 0.6 seconds, displaying the result.
     /// Requirements: 10.1, 10.2, 10.3
     /// </summary>
