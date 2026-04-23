@@ -134,7 +134,14 @@ public class PokerGameManager : MonoBehaviour, IGameObserver
         // Deal hole cards with animation
         if (cardDealerManager != null)
         {
-            yield return cardDealerManager.DealHoleCards(gameState.Players);
+            // Build active seat indices array from players who have not been eliminated
+            var activeSeatIndices = gameState.Players
+                .Where(p => p.Stack > 0)
+                .Select(p => p.SeatIndex)
+                .ToArray();
+            cardDealerManager.DealHoleCards(gameState.Players.ToArray(), activeSeatIndices);
+            // Wait for deal to complete (2.5s budget for 6 players)
+            yield return new WaitForSeconds(2.5f);
         }
         else
         {
@@ -225,13 +232,19 @@ public class PokerGameManager : MonoBehaviour, IGameObserver
                     switch (phaseAfter)
                     {
                         case GamePhase.Flop:
-                            yield return cardDealerManager.DealFlop();
+                            // Reveal first 3 community cards
+                            cardDealerManager.RevealCommunityCards(gameState.CommunityCards.ToArray(), 3);
+                            yield return new WaitForSeconds(0.8f); // 3 cards × 0.1s stagger + flip time
                             break;
                         case GamePhase.Turn:
-                            yield return cardDealerManager.DealTurn();
+                            // Reveal 4th community card
+                            cardDealerManager.RevealCommunityCards(gameState.CommunityCards.ToArray(), 4);
+                            yield return new WaitForSeconds(0.5f);
                             break;
                         case GamePhase.River:
-                            yield return cardDealerManager.DealRiver();
+                            // Reveal 5th community card
+                            cardDealerManager.RevealCommunityCards(gameState.CommunityCards.ToArray(), 5);
+                            yield return new WaitForSeconds(0.5f);
                             break;
                     }
                 }
