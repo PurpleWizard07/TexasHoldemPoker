@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -51,6 +52,7 @@ public class PokerUISetup : EditorWindow
         SetupMainMenuScene();
         SetupPokerGameScene();
         Debug.Log("[PokerUISetup] Setup complete. Both scenes have been saved.");
+        LogManualAssignmentChecklist();
     }
 
     // =========================================================================
@@ -64,6 +66,9 @@ public class PokerUISetup : EditorWindow
 
         // --- Root Canvas ---
         var canvasGO = CreateCanvasRoot("MainMenuCanvas");
+
+        // Add CanvasGroup to root canvas for MainMenuUI.menuCanvasGroup
+        var canvasGroupOnRoot = canvasGO.AddComponent<CanvasGroup>();
 
         // --- Background Image ---
         var bgGO = CreateFullScreenImage(canvasGO, "Background");
@@ -102,14 +107,13 @@ public class PokerUISetup : EditorWindow
         vlg.childForceExpandHeight = false;
 
         // Buttons: Play, Settings, Quit
-        CreateMenuButton(layoutGO, "PlayButton", "PLAY");
-        CreateMenuButton(layoutGO, "SettingsButton", "SETTINGS");
-        CreateMenuButton(layoutGO, "QuitButton", "QUIT");
+        var playBtnGO     = CreateMenuButton(layoutGO, "PlayButton",     "PLAY");
+        var settingsBtnGO = CreateMenuButton(layoutGO, "SettingsButton", "SETTINGS");
+        var quitBtnGO     = CreateMenuButton(layoutGO, "QuitButton",     "QUIT");
 
         // --- MainMenuUI component on root Canvas ---
-        // MainMenuUI does not exist yet — will be created in a later task.
-        // TODO: Add canvasGO.AddComponent<MainMenuUI>() once MainMenuUI.cs is created (Task 13.1).
-        Debug.Log("[PokerUISetup] MainMenuUI component skipped — script not yet created (Task 13.1).");
+        var mainMenuUI = canvasGO.AddComponent<MainMenuUI>();
+        AutoAssignMainMenuUI(mainMenuUI, titleGO, titleTMP, playBtnGO, settingsBtnGO, quitBtnGO, canvasGroupOnRoot);
 
         // --- SceneTransitionManager with fade overlay ---
         SetupSceneTransitionManager();
@@ -119,6 +123,41 @@ public class PokerUISetup : EditorWindow
 
         EditorSceneManager.SaveScene(scene);
         Debug.Log("[PokerUISetup] MainMenu scene saved.");
+    }
+
+    /// <summary>
+    /// Auto-assigns all serialized references on MainMenuUI using SerializedObject.
+    /// Requirements: 3.1, 3.2
+    /// </summary>
+    private static void AutoAssignMainMenuUI(
+        MainMenuUI mainMenuUI,
+        GameObject titleGO,
+        TMPro.TextMeshProUGUI titleTMP,
+        GameObject playBtnGO,
+        GameObject settingsBtnGO,
+        GameObject quitBtnGO,
+        CanvasGroup menuCanvasGroup)
+    {
+        var so = new SerializedObject(mainMenuUI);
+
+        // UITheme
+        var uiTheme = Resources.Load<UITheme>("UITheme");
+        SetSerializedRef(so, "theme", uiTheme);
+
+        // Title transform and text
+        SetSerializedRef(so, "titleTransform", titleGO.GetComponent<RectTransform>());
+        SetSerializedRef(so, "titleText", titleTMP);
+
+        // Buttons
+        SetSerializedRef(so, "playButton",     playBtnGO.GetComponent<UnityEngine.UI.Button>());
+        SetSerializedRef(so, "settingsButton", settingsBtnGO.GetComponent<UnityEngine.UI.Button>());
+        SetSerializedRef(so, "quitButton",     quitBtnGO.GetComponent<UnityEngine.UI.Button>());
+
+        // Canvas group
+        SetSerializedRef(so, "menuCanvasGroup", menuCanvasGroup);
+
+        so.ApplyModifiedProperties();
+        Debug.Log("[PokerUISetup] MainMenuUI references auto-assigned.");
     }
 
     // =========================================================================
@@ -139,88 +178,380 @@ public class PokerUISetup : EditorWindow
         // --- CommunityCardsDisplay ---
         var ccdGO = CreateChildGO(canvasGO, "CommunityCardsDisplay");
         SetAnchors(ccdGO, new Vector2(0.25f, 0.38f), new Vector2(0.75f, 0.62f));
-        // TODO: Add ccdGO.AddComponent<CommunityCardsDisplay>() once script is created (Task 18.1).
-        Debug.Log("[PokerUISetup] CommunityCardsDisplay component skipped — script not yet created (Task 18.1).");
+        var communityCardsDisplay = ccdGO.AddComponent<CommunityCardsDisplay>();
 
         // --- CenterPotDisplay ---
         var cpdGO = CreateChildGO(canvasGO, "CenterPotDisplay");
         SetAnchors(cpdGO, new Vector2(0.35f, 0.42f), new Vector2(0.65f, 0.58f));
-        cpdGO.AddComponent<CenterPotDisplay>();
+        var centerPotDisplay = cpdGO.AddComponent<CenterPotDisplay>();
 
         // --- ActionBar ---
         var actionBarGO = CreateChildGO(canvasGO, "ActionBar");
         SetAnchors(actionBarGO, new Vector2(0.1f, 0.0f), new Vector2(0.9f, 0.18f));
-        // TODO: Add actionBarGO.AddComponent<ActionBar>() once script is created (Task 9.4).
-        Debug.Log("[PokerUISetup] ActionBar component skipped — script not yet created (Task 9.4).");
+        var actionBarCG = actionBarGO.AddComponent<CanvasGroup>();
+        var actionBar = actionBarGO.AddComponent<ActionBar>();
 
         // ActionButton children: Fold, Check, Call, Bet, Raise, AllIn
         string[] actionButtonNames = { "Fold", "Check", "Call", "Bet", "Raise", "AllIn" };
-        foreach (var btnName in actionButtonNames)
+        var actionButtonGOs = new GameObject[actionButtonNames.Length];
+        var actionButtons   = new ActionButton[actionButtonNames.Length];
+        for (int i = 0; i < actionButtonNames.Length; i++)
         {
-            var abGO = CreateChildGO(actionBarGO, btnName + "Button");
+            var abGO = CreateChildGO(actionBarGO, actionButtonNames[i] + "Button");
             var btn = abGO.AddComponent<UnityEngine.UI.Button>();
             var btnImage = abGO.AddComponent<UnityEngine.UI.Image>();
             btn.targetGraphic = btnImage;
+            abGO.AddComponent<CanvasGroup>();
             var labelGO = new GameObject("Label");
             Undo.RegisterCreatedObjectUndo(labelGO, "Create ActionButton Label");
             GameObjectUtility.SetParentAndAlign(labelGO, abGO);
             var labelTMP = labelGO.AddComponent<TMPro.TextMeshProUGUI>();
-            labelTMP.text = btnName.ToUpper();
+            labelTMP.text = actionButtonNames[i].ToUpper();
             labelTMP.fontSize = 18;
             labelTMP.alignment = TMPro.TextAlignmentOptions.Center;
             SetStretchToFill(labelGO);
-            // TODO: Add abGO.AddComponent<ActionButton>() once script is created (Task 9.1).
+            var actionButton = abGO.AddComponent<ActionButton>();
+            actionButtonGOs[i] = abGO;
+            actionButtons[i]   = actionButton;
         }
-        Debug.Log("[PokerUISetup] ActionButton components skipped — script not yet created (Task 9.1).");
 
         // --- RaiseControl ---
         var raiseGO = CreateChildGO(canvasGO, "RaiseControl");
         SetAnchors(raiseGO, new Vector2(0.1f, 0.18f), new Vector2(0.9f, 0.32f));
-        // TODO: Add raiseGO.AddComponent<RaiseControl>() once script is created (Task 9.6).
-        Debug.Log("[PokerUISetup] RaiseControl component skipped — script not yet created (Task 9.6).");
+        raiseGO.AddComponent<CanvasGroup>();
+        var raiseControl = raiseGO.AddComponent<RaiseControl>();
 
         // --- ShowdownUI ---
         var showdownGO = CreateChildGO(canvasGO, "ShowdownUI");
         SetAnchors(showdownGO, new Vector2(0.2f, 0.3f), new Vector2(0.8f, 0.7f));
-        // TODO: Add showdownGO.AddComponent<ShowdownUI>() once script is created (Task 11.1).
-        Debug.Log("[PokerUISetup] ShowdownUI component skipped — script not yet created (Task 11.1).");
+        var showdownUI = showdownGO.AddComponent<ShowdownUI>();
+        var showdownWinnerPanel = SetupShowdownWinnerPanel(showdownGO);
 
         // --- WinnerCelebration ---
         var winnerGO = CreateChildGO(canvasGO, "WinnerCelebration");
         SetStretchToFill(winnerGO);
-        // TODO: Add winnerGO.AddComponent<WinnerCelebration>() once script is created (Task 11.4).
-        Debug.Log("[PokerUISetup] WinnerCelebration component skipped — script not yet created (Task 11.4).");
+        var winnerCelebCG = winnerGO.AddComponent<CanvasGroup>();
+        var winnerCelebration = winnerGO.AddComponent<WinnerCelebration>();
 
         // --- GameOverUI ---
         var gameOverGO = CreateChildGO(canvasGO, "GameOverUI");
         SetStretchToFill(gameOverGO);
-        // TODO: Add gameOverGO.AddComponent<GameOverUI>() once script is created (Task 12.1).
-        Debug.Log("[PokerUISetup] GameOverUI component skipped — script not yet created (Task 12.1).");
+        var gameOverCG = gameOverGO.AddComponent<CanvasGroup>();
+        var gameOverUI = gameOverGO.AddComponent<GameOverUI>();
+        var (playAgainBtnGO, mainMenuBtnGO) = SetupGameOverButtons(gameOverGO);
 
         // --- CardDealerManager ---
         var cdmGO = new GameObject("CardDealerManager");
         Undo.RegisterCreatedObjectUndo(cdmGO, "Create CardDealerManager");
-        // TODO: Add cdmGO.AddComponent<CardDealerManager>() once script is created (Task 6.2).
-        Debug.Log("[PokerUISetup] CardDealerManager component skipped — script not yet created (Task 6.2).");
+        var cardAnimatorGO = new GameObject("CardAnimator");
+        Undo.RegisterCreatedObjectUndo(cardAnimatorGO, "Create CardAnimator");
+        var cardAnimator = cardAnimatorGO.AddComponent<CardAnimator>();
+        var cardDealerManager = cdmGO.AddComponent<CardDealerManager>();
 
         // --- ChipPool ---
         var chipPoolGO = new GameObject("ChipPool");
         Undo.RegisterCreatedObjectUndo(chipPoolGO, "Create ChipPool");
-        chipPoolGO.AddComponent<ChipPool>();
+        var chipPool = chipPoolGO.AddComponent<ChipPool>();
 
         // --- PotAnimator ---
         var potAnimGO = new GameObject("PotAnimator");
         Undo.RegisterCreatedObjectUndo(potAnimGO, "Create PotAnimator");
-        potAnimGO.AddComponent<PotAnimator>();
+        var potAnimator = potAnimGO.AddComponent<PotAnimator>();
 
         // --- Six PlayerUIPanel instances around the table ---
-        SetupPlayerPanels(canvasGO);
+        var playerPanels = SetupPlayerPanels(canvasGO);
+
+        // --- UIManager ---
+        var uiManagerGO = new GameObject("UIManager");
+        Undo.RegisterCreatedObjectUndo(uiManagerGO, "Create UIManager");
+        var uiManager = uiManagerGO.AddComponent<UIManager>();
+
+        // --- Auto-assign all references ---
+        AutoAssignActionBar(actionBar, actionButtons, raiseControl, actionBarCG);
+        AutoAssignCardDealerManager(cardDealerManager, cardAnimator);
+        AutoAssignShowdownUI(showdownUI, showdownWinnerPanel);
+        AutoAssignWinnerCelebration(winnerCelebration, winnerCelebCG);
+        AutoAssignGameOverUI(gameOverUI, gameOverCG, playAgainBtnGO, mainMenuBtnGO);
+        AutoAssignUIManager(uiManager, playerPanels, communityCardsDisplay, centerPotDisplay,
+            actionBar, raiseControl, showdownUI, winnerCelebration, gameOverUI,
+            cardDealerManager, potAnimator, chipPool);
 
         // --- Validate ---
         ValidateCanvasScalersInScene("PokerGame");
 
         EditorSceneManager.SaveScene(scene);
         Debug.Log("[PokerUISetup] PokerGame scene saved.");
+    }
+
+    /// <summary>Creates the winner panel sub-hierarchy inside ShowdownUI and returns the panel GO.</summary>
+    private static GameObject SetupShowdownWinnerPanel(GameObject showdownGO)
+    {
+        var winnerPanel = CreateChildGO(showdownGO, "WinnerPanel");
+        SetStretchToFill(winnerPanel);
+        var winnerPanelCG = winnerPanel.AddComponent<CanvasGroup>();
+
+        var winnerNameGO = new GameObject("WinnerNameText");
+        Undo.RegisterCreatedObjectUndo(winnerNameGO, "Create WinnerNameText");
+        GameObjectUtility.SetParentAndAlign(winnerNameGO, winnerPanel);
+        var winnerNameTMP = winnerNameGO.AddComponent<TMPro.TextMeshProUGUI>();
+        winnerNameTMP.text = "Player Name";
+        winnerNameTMP.fontSize = 36;
+        winnerNameTMP.alignment = TMPro.TextAlignmentOptions.Center;
+        SetAnchors(winnerNameGO, new Vector2(0f, 0.6f), new Vector2(1f, 1f));
+
+        var winnerAmountGO = new GameObject("WinnerAmountText");
+        Undo.RegisterCreatedObjectUndo(winnerAmountGO, "Create WinnerAmountText");
+        GameObjectUtility.SetParentAndAlign(winnerAmountGO, winnerPanel);
+        var winnerAmountTMP = winnerAmountGO.AddComponent<TMPro.TextMeshProUGUI>();
+        winnerAmountTMP.text = "$0";
+        winnerAmountTMP.fontSize = 28;
+        winnerAmountTMP.alignment = TMPro.TextAlignmentOptions.Center;
+        SetAnchors(winnerAmountGO, new Vector2(0f, 0.3f), new Vector2(1f, 0.6f));
+
+        var winnerHandGO = new GameObject("WinnerHandText");
+        Undo.RegisterCreatedObjectUndo(winnerHandGO, "Create WinnerHandText");
+        GameObjectUtility.SetParentAndAlign(winnerHandGO, winnerPanel);
+        var winnerHandTMP = winnerHandGO.AddComponent<TMPro.TextMeshProUGUI>();
+        winnerHandTMP.text = "Royal Flush";
+        winnerHandTMP.fontSize = 22;
+        winnerHandTMP.alignment = TMPro.TextAlignmentOptions.Center;
+        SetAnchors(winnerHandGO, new Vector2(0f, 0f), new Vector2(1f, 0.3f));
+
+        var countdownPanel = CreateChildGO(showdownGO, "CountdownPanel");
+        SetStretchToFill(countdownPanel);
+        countdownPanel.SetActive(false);
+        var countdownTextGO = new GameObject("CountdownText");
+        Undo.RegisterCreatedObjectUndo(countdownTextGO, "Create CountdownText");
+        GameObjectUtility.SetParentAndAlign(countdownTextGO, countdownPanel);
+        var countdownTMP = countdownTextGO.AddComponent<TMPro.TextMeshProUGUI>();
+        countdownTMP.text = "3";
+        countdownTMP.fontSize = 72;
+        countdownTMP.alignment = TMPro.TextAlignmentOptions.Center;
+        SetStretchToFill(countdownTextGO);
+
+        // Screen flash overlay
+        var flashOverlayGO = CreateChildGO(showdownGO, "ScreenFlashOverlay");
+        SetStretchToFill(flashOverlayGO);
+        flashOverlayGO.AddComponent<UnityEngine.UI.Image>().color = new Color(1f, 1f, 1f, 0f);
+        var flashCG = flashOverlayGO.AddComponent<CanvasGroup>();
+        flashCG.alpha = 0f;
+        flashCG.blocksRaycasts = false;
+
+        // Wire ShowdownUI references
+        var so = new SerializedObject(showdownGO.GetComponent<ShowdownUI>());
+        SetSerializedRef(so, "winnerPanel",        winnerPanel);
+        SetSerializedRef(so, "winnerPanelRect",    winnerPanel.GetComponent<RectTransform>());
+        SetSerializedRef(so, "winnerNameText",     winnerNameTMP);
+        SetSerializedRef(so, "winnerAmountText",   winnerAmountTMP);
+        SetSerializedRef(so, "winnerHandText",     winnerHandTMP);
+        SetSerializedRef(so, "winnerPanelCG",      winnerPanelCG);
+        SetSerializedRef(so, "countdownPanel",     countdownPanel);
+        SetSerializedRef(so, "countdownText",      countdownTMP);
+        SetSerializedRef(so, "screenFlashOverlay", flashCG);
+        so.ApplyModifiedProperties();
+
+        return winnerPanel;
+    }
+
+    /// <summary>Creates Play Again and Main Menu buttons inside GameOverUI and returns them.</summary>
+    private static (GameObject playAgain, GameObject mainMenu) SetupGameOverButtons(GameObject gameOverGO)
+    {
+        var headlineGO = new GameObject("HeadlineText");
+        Undo.RegisterCreatedObjectUndo(headlineGO, "Create HeadlineText");
+        GameObjectUtility.SetParentAndAlign(headlineGO, gameOverGO);
+        var headlineTMP = headlineGO.AddComponent<TMPro.TextMeshProUGUI>();
+        headlineTMP.text = "You Win!";
+        headlineTMP.fontSize = 72;
+        headlineTMP.alignment = TMPro.TextAlignmentOptions.Center;
+        SetAnchors(headlineGO, new Vector2(0.1f, 0.6f), new Vector2(0.9f, 0.9f));
+
+        var winnerNameGO = new GameObject("WinnerNameText");
+        Undo.RegisterCreatedObjectUndo(winnerNameGO, "Create WinnerNameText");
+        GameObjectUtility.SetParentAndAlign(winnerNameGO, gameOverGO);
+        var winnerNameTMP = winnerNameGO.AddComponent<TMPro.TextMeshProUGUI>();
+        winnerNameTMP.text = "Player";
+        winnerNameTMP.fontSize = 28;
+        winnerNameTMP.alignment = TMPro.TextAlignmentOptions.Center;
+        SetAnchors(winnerNameGO, new Vector2(0.1f, 0.45f), new Vector2(0.9f, 0.6f));
+
+        var finalStackGO = new GameObject("FinalStackText");
+        Undo.RegisterCreatedObjectUndo(finalStackGO, "Create FinalStackText");
+        GameObjectUtility.SetParentAndAlign(finalStackGO, gameOverGO);
+        var finalStackTMP = finalStackGO.AddComponent<TMPro.TextMeshProUGUI>();
+        finalStackTMP.text = "$0";
+        finalStackTMP.fontSize = 24;
+        finalStackTMP.alignment = TMPro.TextAlignmentOptions.Center;
+        SetAnchors(finalStackGO, new Vector2(0.1f, 0.35f), new Vector2(0.9f, 0.45f));
+
+        var playAgainGO = CreateMenuButton(gameOverGO, "PlayAgainButton", "PLAY AGAIN");
+        SetAnchors(playAgainGO, new Vector2(0.2f, 0.15f), new Vector2(0.48f, 0.3f));
+        var playAgainCG = playAgainGO.AddComponent<CanvasGroup>();
+
+        var mainMenuGO = CreateMenuButton(gameOverGO, "MainMenuButton", "MAIN MENU");
+        SetAnchors(mainMenuGO, new Vector2(0.52f, 0.15f), new Vector2(0.8f, 0.3f));
+        var mainMenuCG = mainMenuGO.AddComponent<CanvasGroup>();
+
+        // Wire GameOverUI references
+        var so = new SerializedObject(gameOverGO.GetComponent<GameOverUI>());
+        SetSerializedRef(so, "headlineText",    headlineTMP);
+        SetSerializedRef(so, "winnerNameText",  winnerNameTMP);
+        SetSerializedRef(so, "finalStackText",  finalStackTMP);
+        SetSerializedRef(so, "playAgainButton", playAgainGO.GetComponent<UnityEngine.UI.Button>());
+        SetSerializedRef(so, "mainMenuButton",  mainMenuGO.GetComponent<UnityEngine.UI.Button>());
+        SetSerializedRef(so, "playAgainCG",     playAgainCG);
+        SetSerializedRef(so, "mainMenuCG",      mainMenuCG);
+        so.ApplyModifiedProperties();
+
+        return (playAgainGO, mainMenuGO);
+    }
+
+    // =========================================================================
+    // AUTO-ASSIGNMENT METHODS
+    // =========================================================================
+
+    /// <summary>
+    /// Auto-assigns ActionBar serialized references.
+    /// Requirements: 3.1, 3.2
+    /// </summary>
+    private static void AutoAssignActionBar(ActionBar actionBar, ActionButton[] buttons, RaiseControl raiseControl, CanvasGroup barCG)
+    {
+        var so = new SerializedObject(actionBar);
+        var uiTheme = Resources.Load<UITheme>("UITheme");
+        SetSerializedRef(so, "theme",          uiTheme);
+        SetSerializedRef(so, "barCanvasGroup", barCG);
+        SetSerializedRef(so, "barRect",        actionBar.GetComponent<RectTransform>());
+        if (buttons.Length >= 6)
+        {
+            SetSerializedRef(so, "foldButton",   buttons[0]);
+            SetSerializedRef(so, "checkButton",  buttons[1]);
+            SetSerializedRef(so, "callButton",   buttons[2]);
+            SetSerializedRef(so, "betButton",    buttons[3]);
+            SetSerializedRef(so, "raiseButton",  buttons[4]);
+            SetSerializedRef(so, "allInButton",  buttons[5]);
+        }
+        SetSerializedRef(so, "raiseControl", raiseControl);
+        so.ApplyModifiedProperties();
+        Debug.Log("[PokerUISetup] ActionBar references auto-assigned.");
+    }
+
+    /// <summary>
+    /// Auto-assigns CardDealerManager serialized references.
+    /// Requirements: 3.1, 3.2
+    /// </summary>
+    private static void AutoAssignCardDealerManager(CardDealerManager cdm, CardAnimator cardAnimator)
+    {
+        var so = new SerializedObject(cdm);
+        var uiTheme = Resources.Load<UITheme>("UITheme");
+        SetSerializedRef(so, "cardAnimator", cardAnimator);
+        SetSerializedRef(so, "theme",        uiTheme);
+        so.ApplyModifiedProperties();
+        Debug.Log("[PokerUISetup] CardDealerManager references auto-assigned.");
+    }
+
+    /// <summary>
+    /// Auto-assigns ShowdownUI serialized references (sub-hierarchy already wired in SetupShowdownWinnerPanel).
+    /// </summary>
+    private static void AutoAssignShowdownUI(ShowdownUI showdownUI, GameObject winnerPanel)
+    {
+        var so = new SerializedObject(showdownUI);
+        var uiTheme = Resources.Load<UITheme>("UITheme");
+        SetSerializedRef(so, "theme", uiTheme);
+        so.ApplyModifiedProperties();
+        Debug.Log("[PokerUISetup] ShowdownUI theme reference auto-assigned.");
+    }
+
+    /// <summary>
+    /// Auto-assigns WinnerCelebration serialized references.
+    /// </summary>
+    private static void AutoAssignWinnerCelebration(WinnerCelebration wc, CanvasGroup cg)
+    {
+        var so = new SerializedObject(wc);
+        var uiTheme = Resources.Load<UITheme>("UITheme");
+        SetSerializedRef(so, "theme",          uiTheme);
+        SetSerializedRef(so, "celebrationCG",  cg);
+
+        // Create text children
+        var wcGO = wc.gameObject;
+        var youWinGO = new GameObject("YouWinText");
+        Undo.RegisterCreatedObjectUndo(youWinGO, "Create YouWinText");
+        GameObjectUtility.SetParentAndAlign(youWinGO, wcGO);
+        var youWinTMP = youWinGO.AddComponent<TMPro.TextMeshProUGUI>();
+        youWinTMP.text = "YOU WIN!";
+        youWinTMP.fontSize = 72;
+        youWinTMP.alignment = TMPro.TextAlignmentOptions.Center;
+        SetAnchors(youWinGO, new Vector2(0.1f, 0.5f), new Vector2(0.9f, 0.9f));
+
+        var amountGO = new GameObject("AmountText");
+        Undo.RegisterCreatedObjectUndo(amountGO, "Create AmountText");
+        GameObjectUtility.SetParentAndAlign(amountGO, wcGO);
+        var amountTMP = amountGO.AddComponent<TMPro.TextMeshProUGUI>();
+        amountTMP.text = "+$0";
+        amountTMP.fontSize = 36;
+        amountTMP.alignment = TMPro.TextAlignmentOptions.Center;
+        SetAnchors(amountGO, new Vector2(0.1f, 0.2f), new Vector2(0.9f, 0.5f));
+
+        SetSerializedRef(so, "youWinText",  youWinTMP);
+        SetSerializedRef(so, "amountText",  amountTMP);
+        so.ApplyModifiedProperties();
+        Debug.Log("[PokerUISetup] WinnerCelebration references auto-assigned.");
+    }
+
+    /// <summary>
+    /// Auto-assigns GameOverUI serialized references (buttons already wired in SetupGameOverButtons).
+    /// </summary>
+    private static void AutoAssignGameOverUI(GameOverUI gameOverUI, CanvasGroup cg,
+        GameObject playAgainBtnGO, GameObject mainMenuBtnGO)
+    {
+        var so = new SerializedObject(gameOverUI);
+        var uiTheme = Resources.Load<UITheme>("UITheme");
+        SetSerializedRef(so, "theme",               uiTheme);
+        SetSerializedRef(so, "gameOverCanvasGroup", cg);
+        so.ApplyModifiedProperties();
+        Debug.Log("[PokerUISetup] GameOverUI references auto-assigned.");
+    }
+
+    /// <summary>
+    /// Auto-assigns UIManager serialized references.
+    /// Requirements: 3.1, 3.2
+    /// </summary>
+    private static void AutoAssignUIManager(
+        UIManager uiManager,
+        PlayerUIPanel[] playerPanels,
+        CommunityCardsDisplay communityCardsDisplay,
+        CenterPotDisplay centerPotDisplay,
+        ActionBar actionBar,
+        RaiseControl raiseControl,
+        ShowdownUI showdownUI,
+        WinnerCelebration winnerCelebration,
+        GameOverUI gameOverUI,
+        CardDealerManager cardDealerManager,
+        PotAnimator potAnimator,
+        ChipPool chipPool)
+    {
+        var so = new SerializedObject(uiManager);
+
+        // Player panels array
+        var playerPanelsProp = so.FindProperty("playerPanels");
+        if (playerPanelsProp != null)
+        {
+            playerPanelsProp.arraySize = playerPanels.Length;
+            for (int i = 0; i < playerPanels.Length; i++)
+                playerPanelsProp.GetArrayElementAtIndex(i).objectReferenceValue = playerPanels[i];
+        }
+
+        SetSerializedRef(so, "communityCardsDisplay", communityCardsDisplay);
+        SetSerializedRef(so, "centerPotDisplay",      centerPotDisplay);
+        SetSerializedRef(so, "actionBar",             actionBar);
+        SetSerializedRef(so, "raiseControl",          raiseControl);
+        SetSerializedRef(so, "showdownUI",            showdownUI);
+        SetSerializedRef(so, "winnerCelebration",     winnerCelebration);
+        SetSerializedRef(so, "gameOverUI",            gameOverUI);
+        SetSerializedRef(so, "cardDealerManager",     cardDealerManager);
+        SetSerializedRef(so, "potAnimator",           potAnimator);
+        SetSerializedRef(so, "chipPool",              chipPool);
+
+        so.ApplyModifiedProperties();
+        Debug.Log("[PokerUISetup] UIManager references auto-assigned.");
     }
 
     // =========================================================================
@@ -248,15 +579,18 @@ public class PokerUISetup : EditorWindow
         new Vector2(0.35f, 0.25f), // Seat 5
     };
 
-    private static void SetupPlayerPanels(GameObject canvasGO)
+    private static PlayerUIPanel[] SetupPlayerPanels(GameObject canvasGO)
     {
+        var panels = new PlayerUIPanel[6];
+        var uiTheme = Resources.Load<UITheme>("UITheme");
+
         for (int i = 0; i < 6; i++)
         {
             var panelGO = CreateChildGO(canvasGO, $"PlayerUIPanel_{i}");
             SetAnchors(panelGO, SeatAnchorMins[i], SeatAnchorMaxs[i]);
 
             // Panel background image
-            panelGO.AddComponent<UnityEngine.UI.Image>();
+            var panelBgImage = panelGO.AddComponent<UnityEngine.UI.Image>();
 
             // Player name label
             var nameGO = new GameObject("PlayerName");
@@ -282,7 +616,7 @@ public class PokerUISetup : EditorWindow
             var glowGO = new GameObject("GlowOutline");
             Undo.RegisterCreatedObjectUndo(glowGO, "Create GlowOutline");
             GameObjectUtility.SetParentAndAlign(glowGO, panelGO);
-            glowGO.AddComponent<UnityEngine.UI.Image>();
+            var glowImage = glowGO.AddComponent<UnityEngine.UI.Image>();
             SetStretchToFill(glowGO);
             glowGO.SetActive(false);
 
@@ -306,11 +640,27 @@ public class PokerUISetup : EditorWindow
             allInGO.SetActive(false);
 
             // CanvasGroup for alpha control
-            panelGO.AddComponent<CanvasGroup>();
+            var panelCG = panelGO.AddComponent<CanvasGroup>();
 
-            // TODO: Add panelGO.AddComponent<PlayerUIPanel>() once script is created (Task 8.1).
+            // PlayerUIPanel component
+            var panel = panelGO.AddComponent<PlayerUIPanel>();
+            panels[i] = panel;
+
+            // Auto-assign PlayerUIPanel references
+            var so = new SerializedObject(panel);
+            SetSerializedRef(so, "theme",             uiTheme);
+            SetSerializedRef(so, "playerNameText",    nameTMP);
+            SetSerializedRef(so, "stackText",         stackTMP);
+            SetSerializedRef(so, "panelBackground",   panelBgImage);
+            SetSerializedRef(so, "glowOutline",       glowImage);
+            SetSerializedRef(so, "foldedLabel",       foldedTMP);
+            SetSerializedRef(so, "allInBadge",        allInGO);
+            SetSerializedRef(so, "panelCanvasGroup",  panelCG);
+            so.ApplyModifiedProperties();
         }
-        Debug.Log("[PokerUISetup] PlayerUIPanel components skipped — script not yet created (Task 8.1).");
+
+        Debug.Log("[PokerUISetup] PlayerUIPanel components created and references auto-assigned.");
+        return panels;
     }
 
     // =========================================================================
@@ -361,6 +711,69 @@ public class PokerUISetup : EditorWindow
             Debug.LogWarning("[PokerUISetup] Could not find 'fadeOverlay' serialized property on SceneTransitionManager. " +
                              "Please assign it manually in the Inspector.");
         }
+    }
+
+    // =========================================================================
+    // SHARED SERIALIZED-OBJECT HELPERS
+    // =========================================================================
+
+    /// <summary>
+    /// Sets a single serialized object reference property by field name.
+    /// Logs a warning if the property is not found.
+    /// </summary>
+    private static void SetSerializedRef(SerializedObject so, string propertyName, Object value)
+    {
+        var prop = so.FindProperty(propertyName);
+        if (prop != null)
+            prop.objectReferenceValue = value;
+        else
+            Debug.LogWarning($"[PokerUISetup] SerializedProperty '{propertyName}' not found on {so.targetObject.GetType().Name}.");
+    }
+
+    // =========================================================================
+    // MANUAL ASSIGNMENT CHECKLIST
+    // =========================================================================
+
+    /// <summary>
+    /// Logs a checklist of references that still require manual assignment in the Inspector.
+    /// Requirements: 3.1, 3.2
+    /// </summary>
+    private static void LogManualAssignmentChecklist()
+    {
+        var checklist = new List<string>
+        {
+            "=== MANUAL ASSIGNMENT CHECKLIST ===",
+            "The following references could NOT be auto-assigned and require manual Inspector work:",
+            "",
+            "[ MainMenu scene ]",
+            "  • SceneTransitionManager → Fade Overlay: already wired by PokerUISetup",
+            "  • MainMenuUI → Theme: auto-assigned (verify UITheme asset exists at Assets/Resources/UITheme)",
+            "  • MainMenuUI → Settings Panel (optional): drag a settings panel GO if you create one",
+            "  • MainMenuUI → Accessibility Toggle (optional): drag a Toggle component if you add one",
+            "",
+            "[ PokerGame scene ]",
+            "  • CardDealerManager → Deck Transform: drag a Transform to mark the deck position on the table",
+            "  • CardDealerManager → Player Card Slots [0-5]: drag CardVisual pairs for each seat's hole cards",
+            "  • CardDealerManager → Community Card Visuals [0-4]: drag the 5 CardVisual GOs from CommunityCardsDisplay",
+            "  • CommunityCardsDisplay → Card Visuals [0-4]: drag the 5 CardVisual child GOs",
+            "  • PlayerUIPanel [0-5] → Avatar Image: drag an Image component for each player's avatar",
+            "  • PlayerUIPanel [0-5] → Dealer Badge: drag an Image component for the dealer chip badge",
+            "  • PlayerUIPanel [0-5] → Card Visuals [0-1]: drag two CardVisual components per panel",
+            "  • PlayerUIPanel [0-5] → Bet Display: drag a BetDisplay component if present",
+            "  • PlayerUIPanel [0-5] → Action Display: drag a PlayerActionDisplay component if present",
+            "  • PotAnimator → Pot Transform: drag the CenterPotDisplay Transform as the pot position",
+            "  • PotAnimator → Audio Source / Chip Clink Clip (optional): assign for chip-clink audio",
+            "  • ShowdownUI → Flash Particles (optional): assign a ParticleSystem for confetti",
+            "  • WinnerCelebration → Confetti System (optional): assign a ParticleSystem",
+            "  • WinnerCelebration → Sparkle System (optional): assign a ParticleSystem",
+            "  • RaiseControl → Panel Rect / Canvas Group / Slider / Input Field / Buttons: wire child controls",
+            "  • ActionButton [each] → Button / Image / Label / Canvas Group: wire child components",
+            "",
+            "All other references have been auto-assigned. Run 'Tools → Poker UI → Setup Scenes' to re-run setup.",
+            "=== END CHECKLIST ==="
+        };
+
+        Debug.Log(string.Join("\n", checklist));
     }
 
     // =========================================================================
