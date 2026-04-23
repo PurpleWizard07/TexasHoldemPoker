@@ -1,310 +1,247 @@
 using System.Collections;
 using UnityEngine;
 using TMPro;
-using UnityEngine.UI;
 
 /// <summary>
-/// Handles showdown UI with professional winner panel display and animations.
+/// Handles showdown UI: winner panel slide-in/out, screen flash, confetti particles,
+/// countdown timer, and fade-out of all showdown elements.
+/// Requirements: 9.1, 9.2, 9.3, 9.5, 9.6, 9.7
 /// </summary>
 public class ShowdownUI : MonoBehaviour
 {
+    [Header("Theme")]
+    [SerializeField] private UITheme theme;
+
     [Header("Winner Panel")]
     [SerializeField] private GameObject winnerPanel;
+    [SerializeField] private RectTransform winnerPanelRect;
     [SerializeField] private TextMeshProUGUI winnerNameText;
     [SerializeField] private TextMeshProUGUI winnerAmountText;
     [SerializeField] private TextMeshProUGUI winnerHandText;
-    [SerializeField] private Image winnerPanelBackground;
-    
-    [Header("Visual Effects")]
-    [SerializeField] private Image glowEffect;
-    [SerializeField] private ParticleSystem confettiEffect;
-    [SerializeField] private Image flashOverlay;
+    [SerializeField] private CanvasGroup winnerPanelCG;
 
     [Header("Countdown Panel")]
     [SerializeField] private GameObject countdownPanel;
     [SerializeField] private TextMeshProUGUI countdownText;
 
-    [Header("Animation Settings")]
-    [SerializeField] private float displayDuration = 3f;
-    [SerializeField] private float slideInDuration = 0.5f;
-    [SerializeField] private float glowPulseSpeed = 2f;
-    [SerializeField] private AnimationCurve slideInCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+    [Header("Effects")]
+    [SerializeField] private ParticleSystem flashParticles;
+    [SerializeField] private CanvasGroup screenFlashOverlay;
 
-    [Header("Colors")]
-    [SerializeField] private Color winnerGlowColor = new Color(1f, 0.84f, 0f, 1f); // Gold
-    [SerializeField] private Color flashColor = new Color(1f, 1f, 1f, 0.5f);
+    // Off-screen Y position used to park the winner panel above the visible area
+    private const float OffScreenTopY = 1200f;
+    // Center Y position for the winner panel when visible
+    private const float CenterY = 0f;
+    // Off-screen Y position used to slide the winner panel downward when dismissed
+    private const float OffScreenBottomY = -1200f;
 
-    private Coroutine glowCoroutine;
+    private Coroutine _showWinnerCoroutine;
+    private Coroutine _hideWinnerCoroutine;
+    private Coroutine _showCountdownCoroutine;
+    private Coroutine _fadeOutAllCoroutine;
+
+    private void Awake()
+    {
+        ValidateReferences();
+
+        // Load theme fallback
+        if (theme == null)
+        {
+            theme = Resources.Load<UITheme>("UITheme");
+            if (theme == null)
+                theme = UITheme.CreateDefault();
+        }
+    }
 
     private void Start()
     {
-        // Hide panels initially
-        if (winnerPanel != null) winnerPanel.SetActive(false);
-        if (countdownPanel != null) countdownPanel.SetActive(false);
-        if (flashOverlay != null) flashOverlay.gameObject.SetActive(false);
+        // Ensure panels start hidden
+        if (winnerPanel != null)
+            winnerPanel.SetActive(false);
+
+        if (countdownPanel != null)
+            countdownPanel.SetActive(false);
+
+        if (screenFlashOverlay != null)
+            screenFlashOverlay.alpha = 0f;
     }
 
-    public IEnumerator ShowWinner(string playerName, decimal amount, string handName)
+    private void ValidateReferences()
     {
         if (winnerPanel == null)
-        {
-            Debug.LogWarning("Winner panel not assigned!");
-            yield return new WaitForSeconds(displayDuration);
-            yield break;
-        }
-
-        // Set winner information (removed emoji to avoid TMP font warnings)
-        if (winnerNameText != null)
-            winnerNameText.text = $"{playerName} WINS!";
-        
-        if (winnerAmountText != null)
-            winnerAmountText.text = $"${amount}";
-        
-        if (winnerHandText != null)
-            winnerHandText.text = handName;
-
-        // Flash effect
-        yield return StartCoroutine(FlashScreen());
-
-        // Show panel with slide-in animation
-        yield return StartCoroutine(SlideInPanel());
-
-        // Start glow pulse effect
-        if (glowEffect != null)
-        {
-            glowCoroutine = StartCoroutine(PulseGlow());
-        }
-
-        // Play confetti
-        if (confettiEffect != null)
-        {
-            confettiEffect.Play();
-        }
-
-        // Scale pulse animation
-        yield return StartCoroutine(PulseScale(winnerPanel.transform));
-
-        // Display for duration (but keep visible during chip animation)
-        yield return new WaitForSeconds(displayDuration - 1f);
-
-        // Stop glow (but keep panel visible for chip animation)
-        if (glowCoroutine != null)
-        {
-            StopCoroutine(glowCoroutine);
-        }
-
-        // Don't slide out yet - keep panel visible during chip animation
-        // Panel will be hidden by HideWinnerPanel() after chip animation completes
+            Debug.LogWarning("[ShowdownUI] winnerPanel is not assigned.", this);
+        if (winnerPanelRect == null)
+            Debug.LogWarning("[ShowdownUI] winnerPanelRect is not assigned.", this);
+        if (winnerNameText == null)
+            Debug.LogWarning("[ShowdownUI] winnerNameText is not assigned.", this);
+        if (winnerAmountText == null)
+            Debug.LogWarning("[ShowdownUI] winnerAmountText is not assigned.", this);
+        if (winnerHandText == null)
+            Debug.LogWarning("[ShowdownUI] winnerHandText is not assigned.", this);
+        if (winnerPanelCG == null)
+            Debug.LogWarning("[ShowdownUI] winnerPanelCG is not assigned.", this);
+        if (countdownPanel == null)
+            Debug.LogWarning("[ShowdownUI] countdownPanel is not assigned.", this);
+        if (countdownText == null)
+            Debug.LogWarning("[ShowdownUI] countdownText is not assigned.", this);
+        if (flashParticles == null)
+            Debug.LogWarning("[ShowdownUI] flashParticles is not assigned.", this);
+        if (screenFlashOverlay == null)
+            Debug.LogWarning("[ShowdownUI] screenFlashOverlay is not assigned.", this);
     }
 
     /// <summary>
-    /// Hide the winner panel after chip animation completes.
+    /// Slides the winner panel in from the top over 0.5s, populates all three text fields,
+    /// triggers a white screen flash (30% opacity fading over 0.3s), and plays confetti particles.
+    /// When handName is "All Others Folded", displays it as-is without revealing hole cards.
+    /// Requirements: 9.1, 9.2, 9.5
+    /// </summary>
+    public IEnumerator ShowWinner(string playerName, decimal amount, string handName)
+    {
+        if (_showWinnerCoroutine != null)
+            StopCoroutine(_showWinnerCoroutine);
+
+        _showWinnerCoroutine = StartCoroutine(ShowWinnerRoutine(playerName, amount, handName));
+        yield return _showWinnerCoroutine;
+    }
+
+    private IEnumerator ShowWinnerRoutine(string playerName, decimal amount, string handName)
+    {
+        if (winnerPanel == null || winnerPanelRect == null)
+            yield break;
+
+        // Populate text fields before making the panel visible
+        if (winnerNameText != null)
+            winnerNameText.text = playerName;
+
+        if (winnerAmountText != null)
+            winnerAmountText.text = $"${amount:N0}";
+
+        if (winnerHandText != null)
+            winnerHandText.text = handName;
+
+        // Reset panel alpha and position it off-screen above
+        if (winnerPanelCG != null)
+            winnerPanelCG.alpha = 1f;
+
+        winnerPanelRect.anchoredPosition = new Vector2(winnerPanelRect.anchoredPosition.x, OffScreenTopY);
+        winnerPanel.SetActive(true);
+
+        // Slide down to center
+        float slideDuration = theme != null ? theme.winnerSlideDuration : 0.5f;
+        yield return StartCoroutine(
+            TweenHelper.Slide(winnerPanelRect,
+                new Vector2(winnerPanelRect.anchoredPosition.x, CenterY),
+                slideDuration));
+
+        // Trigger screen flash and confetti in parallel
+        StartCoroutine(PlayScreenFlash());
+
+        if (flashParticles != null)
+            flashParticles.Play();
+    }
+
+    /// <summary>
+    /// Slides the winner panel out downward over 0.4s, then deactivates it.
+    /// Requirement: 9.6
     /// </summary>
     public void HideWinnerPanel()
     {
-        if (winnerPanel != null && winnerPanel.activeSelf)
-        {
-            StartCoroutine(SlideOutAndHide());
-        }
+        if (_hideWinnerCoroutine != null)
+            StopCoroutine(_hideWinnerCoroutine);
+
+        _hideWinnerCoroutine = StartCoroutine(HideWinnerRoutine());
     }
 
-    private IEnumerator SlideOutAndHide()
+    private IEnumerator HideWinnerRoutine()
     {
-        // Slide out
-        yield return StartCoroutine(SlideOutPanel());
+        if (winnerPanel == null || winnerPanelRect == null || !winnerPanel.activeSelf)
+            yield break;
 
-        // Hide panel
+        float fadeDuration = theme != null ? theme.fadeTransitionDuration : 0.4f;
+        yield return StartCoroutine(
+            TweenHelper.Slide(winnerPanelRect,
+                new Vector2(winnerPanelRect.anchoredPosition.x, OffScreenBottomY),
+                fadeDuration));
+
         winnerPanel.SetActive(false);
     }
 
-    private IEnumerator FlashScreen()
-    {
-        if (flashOverlay == null) yield break;
-
-        flashOverlay.gameObject.SetActive(true);
-        flashOverlay.color = flashColor;
-
-        float duration = 0.3f;
-        float elapsed = 0f;
-
-        while (elapsed < duration)
-        {
-            elapsed += Time.deltaTime;
-            float alpha = Mathf.Lerp(flashColor.a, 0f, elapsed / duration);
-            Color color = flashColor;
-            color.a = alpha;
-            flashOverlay.color = color;
-            yield return null;
-        }
-
-        flashOverlay.gameObject.SetActive(false);
-    }
-
-    private IEnumerator SlideInPanel()
-    {
-        winnerPanel.SetActive(true);
-        
-        RectTransform rectTransform = winnerPanel.GetComponent<RectTransform>();
-        if (rectTransform == null) yield break;
-
-        Vector2 startPos = new Vector2(0, Screen.height);
-        Vector2 endPos = Vector2.zero;
-        
-        rectTransform.anchoredPosition = startPos;
-
-        float elapsed = 0f;
-
-        while (elapsed < slideInDuration)
-        {
-            elapsed += Time.deltaTime;
-            float t = slideInCurve.Evaluate(elapsed / slideInDuration);
-            rectTransform.anchoredPosition = Vector2.Lerp(startPos, endPos, t);
-            yield return null;
-        }
-
-        rectTransform.anchoredPosition = endPos;
-    }
-
-    private IEnumerator SlideOutPanel()
-    {
-        RectTransform rectTransform = winnerPanel.GetComponent<RectTransform>();
-        if (rectTransform == null) yield break;
-
-        Vector2 startPos = rectTransform.anchoredPosition;
-        Vector2 endPos = new Vector2(0, -Screen.height);
-
-        float elapsed = 0f;
-
-        while (elapsed < slideInDuration)
-        {
-            elapsed += Time.deltaTime;
-            float t = slideInCurve.Evaluate(elapsed / slideInDuration);
-            rectTransform.anchoredPosition = Vector2.Lerp(startPos, endPos, t);
-            yield return null;
-        }
-    }
-
-    private IEnumerator PulseGlow()
-    {
-        if (glowEffect == null) yield break;
-
-        glowEffect.gameObject.SetActive(true);
-        float timer = 0f;
-
-        while (true)
-        {
-            timer += Time.deltaTime * glowPulseSpeed;
-            float alpha = (Mathf.Sin(timer) + 1f) / 2f; // 0 to 1
-            alpha = Mathf.Lerp(0.3f, 0.8f, alpha);
-
-            Color color = winnerGlowColor;
-            color.a = alpha;
-            glowEffect.color = color;
-
-            yield return null;
-        }
-    }
-
-    private IEnumerator PulseScale(Transform target)
-    {
-        if (target == null) yield break;
-
-        Vector3 originalScale = target.localScale;
-        float pulseDuration = 0.4f;
-
-        // Scale up
-        float elapsed = 0f;
-        while (elapsed < pulseDuration)
-        {
-            elapsed += Time.deltaTime;
-            float t = elapsed / pulseDuration;
-            float scale = Mathf.Lerp(1f, 1.15f, t);
-            target.localScale = originalScale * scale;
-            yield return null;
-        }
-
-        // Scale back
-        elapsed = 0f;
-        while (elapsed < pulseDuration)
-        {
-            elapsed += Time.deltaTime;
-            float t = elapsed / pulseDuration;
-            float scale = Mathf.Lerp(1.15f, 1f, t);
-            target.localScale = originalScale * scale;
-            yield return null;
-        }
-
-        target.localScale = originalScale;
-    }
-
-    public IEnumerator ShowFoldWinner(string playerName, decimal amount)
-    {
-        yield return StartCoroutine(ShowWinner(playerName, amount, "All Others Folded"));
-    }
-
+    /// <summary>
+    /// Displays a countdown from 3 to 1, with a scale-pop animation per number.
+    /// Requirement: 9.7
+    /// </summary>
     public IEnumerator ShowCountdown()
     {
-        if (countdownPanel == null || countdownText == null) 
+        if (_showCountdownCoroutine != null)
+            StopCoroutine(_showCountdownCoroutine);
+
+        _showCountdownCoroutine = StartCoroutine(ShowCountdownRoutine());
+        yield return _showCountdownCoroutine;
+    }
+
+    private IEnumerator ShowCountdownRoutine()
+    {
+        if (countdownPanel == null || countdownText == null)
         {
-            Debug.LogWarning("Countdown panel not assigned! Skipping countdown.");
+            Debug.LogWarning("[ShowdownUI] Countdown panel or text not assigned — skipping countdown.");
             yield return new WaitForSeconds(3f);
             yield break;
         }
 
-        // Show countdown panel with fade in
         countdownPanel.SetActive(true);
-        CanvasGroup canvasGroup = countdownPanel.GetComponent<CanvasGroup>();
-        if (canvasGroup == null)
-            canvasGroup = countdownPanel.AddComponent<CanvasGroup>();
 
-        canvasGroup.alpha = 0f;
-        float fadeTime = 0.3f;
-        float elapsed = 0f;
-
-        while (elapsed < fadeTime)
-        {
-            elapsed += Time.deltaTime;
-            canvasGroup.alpha = Mathf.Lerp(0f, 1f, elapsed / fadeTime);
-            yield return null;
-        }
-
-        // Countdown from 3 to 1
         for (int i = 3; i >= 1; i--)
         {
             countdownText.text = i.ToString();
-            
-            // Scale pulse for each number
-            countdownText.transform.localScale = Vector3.one * 1.5f;
-            float scaleDuration = 0.3f;
-            elapsed = 0f;
-            
-            while (elapsed < scaleDuration)
-            {
-                elapsed += Time.deltaTime;
-                float scale = Mathf.Lerp(1.5f, 1f, elapsed / scaleDuration);
-                countdownText.transform.localScale = Vector3.one * scale;
-                yield return null;
-            }
-            
-            yield return new WaitForSeconds(0.7f);
+
+            // Scale-pop: peak at 1.4, duration 0.4s
+            yield return StartCoroutine(TweenHelper.ScalePop(countdownText.transform, 1.4f, 0.4f));
+
+            // Hold for the remainder of the second
+            yield return new WaitForSeconds(0.6f);
         }
 
-        // "Starting!" message
-        countdownText.text = "GO!";
-        countdownText.transform.localScale = Vector3.one * 1.5f;
-        yield return new WaitForSeconds(0.5f);
-
-        // Fade out
-        elapsed = 0f;
-        while (elapsed < fadeTime)
-        {
-            elapsed += Time.deltaTime;
-            canvasGroup.alpha = Mathf.Lerp(1f, 0f, elapsed / fadeTime);
-            yield return null;
-        }
-
-        // Hide countdown panel
         countdownPanel.SetActive(false);
-        countdownText.transform.localScale = Vector3.one;
+    }
+
+    /// <summary>
+    /// Fades out all showdown elements (winner panel canvas group) over 0.4s, then hides panels.
+    /// Requirement: 9.6
+    /// </summary>
+    public IEnumerator FadeOutAll()
+    {
+        if (_fadeOutAllCoroutine != null)
+            StopCoroutine(_fadeOutAllCoroutine);
+
+        _fadeOutAllCoroutine = StartCoroutine(FadeOutAllRoutine());
+        yield return _fadeOutAllCoroutine;
+    }
+
+    private IEnumerator FadeOutAllRoutine()
+    {
+        float fadeDuration = theme != null ? theme.fadeTransitionDuration : 0.4f;
+
+        if (winnerPanelCG != null && winnerPanel != null && winnerPanel.activeSelf)
+            yield return StartCoroutine(TweenHelper.Fade(winnerPanelCG, 0f, fadeDuration));
+
+        if (winnerPanel != null)
+            winnerPanel.SetActive(false);
+
+        if (countdownPanel != null)
+            countdownPanel.SetActive(false);
+    }
+
+    /// <summary>
+    /// Plays a white screen flash at 30% opacity that fades to 0 over 0.3s.
+    /// Requirement: 9.2
+    /// </summary>
+    private IEnumerator PlayScreenFlash()
+    {
+        if (screenFlashOverlay == null)
+            yield break;
+
+        screenFlashOverlay.alpha = 0.3f;
+        yield return StartCoroutine(TweenHelper.Fade(screenFlashOverlay, 0f, 0.3f));
     }
 }
