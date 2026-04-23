@@ -91,6 +91,14 @@ public class ChipStack : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Clears all displayed chip GameObjects. Called externally when the bet or pot is reset.
+    /// </summary>
+    public void ClearChips()
+    {
+        ClearDisplayChips();
+    }
+
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------
