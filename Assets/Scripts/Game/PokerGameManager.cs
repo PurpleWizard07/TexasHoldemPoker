@@ -99,12 +99,11 @@ public class PokerGameManager : MonoBehaviour, IGameObserver
         // Assign personalities to bot controllers (seat 0 is human)
         for (int i = 1; i < numberOfPlayers; i++)
         {
-            if (_botControllers[i] != null && botPersonalities != null)
-            {
-                int personalityIndex = (i - 1) % botPersonalities.Length;
-                if (botPersonalities.Length > 0)
-                    _botControllers[i].SetPersonality(botPersonalities[personalityIndex]);
-            }
+            if (_botControllers[i] == null || botPersonalities == null || botPersonalities.Length == 0)
+                continue;
+
+            int personalityIndex = (i - 1) % botPersonalities.Length;
+            _botControllers[i].SetPersonality(botPersonalities[personalityIndex]);
         }
         
         if (uiManager != null)

@@ -27,16 +27,6 @@ public class BotController : MonoBehaviour
     {
         _decisionEngine   = new DecisionEngine();
         _tableReadTracker = new TableReadTracker();
-
-        // Req 14.1 / design: fall back to neutral personality if none assigned
-        if (personality == null)
-        {
-            Debug.LogWarning($"[BotController] No BotPersonality assigned on '{name}'. Using default (5/5/5).");
-            personality = ScriptableObject.CreateInstance<BotPersonality>();
-            personality.aggression  = 5;
-            personality.tightness   = 5;
-            personality.bluffiness  = 5;
-        }
     }
 
     // -------------------------------------------------------------------------
@@ -56,6 +46,16 @@ public class BotController : MonoBehaviour
             return player != null
                 ? PlayerAction.Check(player.Id)
                 : PlayerAction.Check(System.Guid.Empty);
+        }
+
+        // Personality can be assigned later by PokerGameManager after Awake().
+        if (personality == null)
+        {
+            Debug.LogWarning($"[BotController] No BotPersonality assigned on '{name}'. Using default (5/5/5).");
+            personality = ScriptableObject.CreateInstance<BotPersonality>();
+            personality.aggression = 5;
+            personality.tightness = 5;
+            personality.bluffiness = 5;
         }
 
         DecisionContext ctx = PopulateDecisionContext(state, player);
