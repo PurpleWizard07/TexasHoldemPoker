@@ -9,6 +9,7 @@ public class CardVisual : MonoBehaviour
 {
     [SerializeField] private Image cardImage;
     [SerializeField] private Sprite cardBackSprite;
+    [SerializeField] private bool preserveImageAspect = true;
     
     private Card? currentCard;
     private bool isFaceUp = false;
@@ -17,6 +18,11 @@ public class CardVisual : MonoBehaviour
     {
         if (cardImage == null)
             cardImage = GetComponent<Image>();
+
+        if (cardImage != null)
+        {
+            cardImage.preserveAspect = preserveImageAspect;
+        }
     }
 
     public void SetCard(Card card, bool faceUp = true)
@@ -55,6 +61,7 @@ public class CardVisual : MonoBehaviour
             if (sprite != null && cardImage != null)
             {
                 cardImage.sprite = sprite;
+                cardImage.preserveAspect = preserveImageAspect;
             }
         }
         else
@@ -63,6 +70,7 @@ public class CardVisual : MonoBehaviour
             if (cardBackSprite != null && cardImage != null)
             {
                 cardImage.sprite = cardBackSprite;
+                cardImage.preserveAspect = preserveImageAspect;
             }
         }
     }

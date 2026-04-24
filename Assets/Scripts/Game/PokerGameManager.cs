@@ -97,13 +97,14 @@ public class PokerGameManager : MonoBehaviour, IGameObserver
         Debug.Log($"Poker game initialized with {numberOfPlayers} players. Blinds: ${smallBlind}/${bigBlind}");
 
         // Assign personalities to bot controllers (seat 0 is human)
+        var personalitiesForBots = GetBotPersonalitiesForTable();
         for (int i = 1; i < numberOfPlayers; i++)
         {
-            if (_botControllers[i] == null || botPersonalities == null || botPersonalities.Length == 0)
+            if (_botControllers[i] == null || personalitiesForBots == null || personalitiesForBots.Length == 0)
                 continue;
 
-            int personalityIndex = (i - 1) % botPersonalities.Length;
-            _botControllers[i].SetPersonality(botPersonalities[personalityIndex]);
+            int personalityIndex = (i - 1) % personalitiesForBots.Length;
+            _botControllers[i].SetPersonality(personalitiesForBots[personalityIndex]);
         }
         
         if (uiManager != null)
@@ -178,7 +179,7 @@ public class PokerGameManager : MonoBehaviour, IGameObserver
                     {
                         if (display != null && display.GetCurrentBet() > 0)
                         {
-                            currentBets.Add((display.transform, display.GetCurrentBet()));
+                            currentBets.Add((display.GetAnimationOrigin(), display.GetCurrentBet()));
                         }
                     }
                 }
@@ -804,4 +805,38 @@ public class PokerGameManager : MonoBehaviour, IGameObserver
     public GameState GetGameState() => gameState;
     public bool IsHandActive() => gameState != null && !gameState.HandComplete;
     public bool IsHumanTurn() => IsHumanPlayerTurn();
+
+    /// <summary>
+    /// Returns personalities for bot seats. Uses inspector-assigned assets when available,
+    /// otherwise creates six runtime presets and uses those.
+    /// </summary>
+    private BotPersonality[] GetBotPersonalitiesForTable()
+    {
+        if (botPersonalities != null && botPersonalities.Length > 0)
+            return botPersonalities.Where(p => p != null).ToArray();
+
+        // Runtime fallback presets (6 total). Seats 1-5 consume the first 5.
+        var generated = new[]
+        {
+            CreateRuntimePersonality("TAG", aggression: 7, tightness: 8, bluffiness: 3),
+            CreateRuntimePersonality("LAG", aggression: 9, tightness: 3, bluffiness: 8),
+            CreateRuntimePersonality("Nit", aggression: 3, tightness: 10, bluffiness: 1),
+            CreateRuntimePersonality("Calling Station", aggression: 2, tightness: 4, bluffiness: 1),
+            CreateRuntimePersonality("Balanced", aggression: 6, tightness: 6, bluffiness: 5),
+            CreateRuntimePersonality("Maniac", aggression: 10, tightness: 2, bluffiness: 9),
+        };
+
+        Debug.LogWarning("[PokerGameManager] No bot personality assets assigned in Inspector. Using runtime presets.");
+        return generated;
+    }
+
+    private static BotPersonality CreateRuntimePersonality(string archetype, int aggression, int tightness, int bluffiness)
+    {
+        var profile = ScriptableObject.CreateInstance<BotPersonality>();
+        profile.archetypeName = archetype;
+        profile.aggression = aggression;
+        profile.tightness = tightness;
+        profile.bluffiness = bluffiness;
+        return profile;
+    }
 }

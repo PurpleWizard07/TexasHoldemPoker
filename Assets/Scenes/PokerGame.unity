@@ -541,6 +541,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BetDisplay
   betText: {fileID: 1441844475}
   betContainer: {fileID: 103608726}
+  chipStack: {fileID: 0}
+  useVisualChips: 1
+  chipAnimationOrigin: {fileID: 935884344}
 --- !u!1 &115369915
 GameObject:
   m_ObjectHideFlags: 0
@@ -593,6 +596,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardVisual
   cardImage: {fileID: 0}
   cardBackSprite: {fileID: 21300000, guid: b1d11e4c1039cc14fa9e31da0e1f02ff, type: 3}
+  preserveImageAspect: 1
 --- !u!114 &115369918
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -820,6 +824,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardVisual
   cardImage: {fileID: 0}
   cardBackSprite: {fileID: 21300000, guid: b1d11e4c1039cc14fa9e31da0e1f02ff, type: 3}
+  preserveImageAspect: 1
 --- !u!114 &127489407
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -899,6 +904,7 @@ MonoBehaviour:
   potAnimator: {fileID: 859406876}
   raiseControl: {fileID: 369235512}
   cardDealerManager: {fileID: 1834273426}
+  botPersonalities: []
 --- !u!4 &133369835
 Transform:
   m_ObjectHideFlags: 0
@@ -966,6 +972,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardVisual
   cardImage: {fileID: 0}
   cardBackSprite: {fileID: 21300000, guid: b1d11e4c1039cc14fa9e31da0e1f02ff, type: 3}
+  preserveImageAspect: 1
 --- !u!114 &136010795
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1451,6 +1458,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardVisual
   cardImage: {fileID: 0}
   cardBackSprite: {fileID: 21300000, guid: b1d11e4c1039cc14fa9e31da0e1f02ff, type: 3}
+  preserveImageAspect: 1
 --- !u!114 &174171772
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1852,6 +1860,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardVisual
   cardImage: {fileID: 0}
   cardBackSprite: {fileID: 21300000, guid: b1d11e4c1039cc14fa9e31da0e1f02ff, type: 3}
+  preserveImageAspect: 1
 --- !u!114 &271002620
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1930,6 +1939,7 @@ RectTransform:
   - {fileID: 1319116333}
   - {fileID: 1115482061}
   - {fileID: 98173912}
+  - {fileID: 935884344}
   m_Father: {fileID: 1933593156}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -2016,6 +2026,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BetDisplay
   betText: {fileID: 1441844475}
   betContainer: {fileID: 103608726}
+  chipStack: {fileID: 0}
+  useVisualChips: 1
+  chipAnimationOrigin: {fileID: 935884344}
 --- !u!1 &312148899
 GameObject:
   m_ObjectHideFlags: 0
@@ -4003,6 +4016,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BetDisplay
   betText: {fileID: 1339038762}
   betContainer: {fileID: 511529456}
+  chipStack: {fileID: 0}
+  useVisualChips: 1
+  chipAnimationOrigin: {fileID: 1228125639}
 --- !u!1 &518410194
 GameObject:
   m_ObjectHideFlags: 0
@@ -4596,6 +4612,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BetDisplay
   betText: {fileID: 1943666752}
   betContainer: {fileID: 588620288}
+  chipStack: {fileID: 0}
+  useVisualChips: 1
+  chipAnimationOrigin: {fileID: 1453104057}
 --- !u!1 &602392220
 GameObject:
   m_ObjectHideFlags: 0
@@ -5172,6 +5191,7 @@ RectTransform:
   - {fileID: 455320795}
   - {fileID: 1004417147}
   - {fileID: 1374626656}
+  - {fileID: 1228125639}
   m_Father: {fileID: 1933593156}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -5231,6 +5251,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BetDisplay
   betText: {fileID: 1339038762}
   betContainer: {fileID: 511529456}
+  chipStack: {fileID: 0}
+  useVisualChips: 1
+  chipAnimationOrigin: {fileID: 1228125639}
 --- !u!1 &699514436
 GameObject:
   m_ObjectHideFlags: 0
@@ -6344,9 +6367,10 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  potChipPrefab: {fileID: 0}
   centerPotPosition: {fileID: 1672601018}
   centerPotText: {fileID: 312148902}
+  chipAnimator: {fileID: 0}
+  useChipAnimations: 1
 --- !u!4 &859406877
 Transform:
   m_ObjectHideFlags: 0
@@ -6451,6 +6475,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardVisual
   cardImage: {fileID: 0}
   cardBackSprite: {fileID: 21300000, guid: b1d11e4c1039cc14fa9e31da0e1f02ff, type: 3}
+  preserveImageAspect: 1
 --- !u!114 &879530451
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6678,6 +6703,53 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BetDisplay
   betText: {fileID: 431773544}
   betContainer: {fileID: 923717443}
+  chipStack: {fileID: 0}
+  useVisualChips: 1
+  chipAnimationOrigin: {fileID: 2013436095}
+--- !u!1 &935884343
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 935884344}
+  - component: {fileID: 935884345}
+  m_Layer: 0
+  m_Name: ChipOrigin
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &935884344
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 935884343}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 286254021}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &935884345
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 935884343}
+  m_CullTransparentMesh: 1
 --- !u!1 &952655838
 GameObject:
   m_ObjectHideFlags: 0
@@ -6730,6 +6802,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardVisual
   cardImage: {fileID: 0}
   cardBackSprite: {fileID: 21300000, guid: b1d11e4c1039cc14fa9e31da0e1f02ff, type: 3}
+  preserveImageAspect: 1
 --- !u!114 &952655841
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7389,6 +7462,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardVisual
   cardImage: {fileID: 0}
   cardBackSprite: {fileID: 21300000, guid: b1d11e4c1039cc14fa9e31da0e1f02ff, type: 3}
+  preserveImageAspect: 1
 --- !u!1 &1080073397
 GameObject:
   m_ObjectHideFlags: 0
@@ -7553,6 +7627,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardVisual
   cardImage: {fileID: 0}
   cardBackSprite: {fileID: 21300000, guid: b1d11e4c1039cc14fa9e31da0e1f02ff, type: 3}
+  preserveImageAspect: 1
 --- !u!114 &1106719993
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8152,6 +8227,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1212253152}
   m_CullTransparentMesh: 1
+--- !u!1 &1228125638
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1228125639}
+  - component: {fileID: 1228125640}
+  m_Layer: 0
+  m_Name: ChipOrigin
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1228125639
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1228125638}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 691010290}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &1228125640
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1228125638}
+  m_CullTransparentMesh: 1
 --- !u!1 &1230059137
 GameObject:
   m_ObjectHideFlags: 0
@@ -8330,6 +8449,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardVisual
   cardImage: {fileID: 0}
   cardBackSprite: {fileID: 21300000, guid: b1d11e4c1039cc14fa9e31da0e1f02ff, type: 3}
+  preserveImageAspect: 1
 --- !u!114 &1233511380
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8707,6 +8827,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardVisual
   cardImage: {fileID: 0}
   cardBackSprite: {fileID: 21300000, guid: b1d11e4c1039cc14fa9e31da0e1f02ff, type: 3}
+  preserveImageAspect: 1
 --- !u!114 &1282099020
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9732,6 +9853,7 @@ RectTransform:
   - {fileID: 213907823}
   - {fileID: 699514437}
   - {fileID: 1911877575}
+  - {fileID: 1366457871}
   m_Father: {fileID: 1933593156}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
@@ -9818,6 +9940,53 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BetDisplay
   betText: {fileID: 92662913}
   betContainer: {fileID: 1807207556}
+  chipStack: {fileID: 0}
+  useVisualChips: 1
+  chipAnimationOrigin: {fileID: 1366457871}
+--- !u!1 &1366457870
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1366457871}
+  - component: {fileID: 1366457872}
+  m_Layer: 0
+  m_Name: ChipOrigin
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1366457871
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1366457870}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1361230965}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &1366457872
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1366457870}
+  m_CullTransparentMesh: 1
 --- !u!1 &1369774293
 GameObject:
   m_ObjectHideFlags: 0
@@ -10441,6 +10610,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1441844473}
   m_CullTransparentMesh: 1
+--- !u!1 &1453104056
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1453104057}
+  - component: {fileID: 1453104058}
+  m_Layer: 0
+  m_Name: ChipOrigin
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1453104057
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1453104056}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1615345350}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &1453104058
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1453104056}
+  m_CullTransparentMesh: 1
 --- !u!1 &1480021099
 GameObject:
   m_ObjectHideFlags: 0
@@ -10767,6 +10980,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardVisual
   cardImage: {fileID: 0}
   cardBackSprite: {fileID: 21300000, guid: b1d11e4c1039cc14fa9e31da0e1f02ff, type: 3}
+  preserveImageAspect: 1
 --- !u!114 &1539722141
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11167,6 +11381,7 @@ RectTransform:
   - {fileID: 1154358282}
   - {fileID: 1626303042}
   - {fileID: 789431112}
+  - {fileID: 1453104057}
   m_Father: {fileID: 1933593156}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -11253,6 +11468,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BetDisplay
   betText: {fileID: 1943666752}
   betContainer: {fileID: 588620288}
+  chipStack: {fileID: 0}
+  useVisualChips: 1
+  chipAnimationOrigin: {fileID: 1453104057}
 --- !u!1 &1618531699
 GameObject:
   m_ObjectHideFlags: 0
@@ -11617,6 +11835,7 @@ RectTransform:
   - {fileID: 1080073398}
   - {fileID: 1212253153}
   - {fileID: 523987746}
+  - {fileID: 2013436095}
   m_Father: {fileID: 1933593156}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -11703,6 +11922,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BetDisplay
   betText: {fileID: 431773544}
   betContainer: {fileID: 923717443}
+  chipStack: {fileID: 0}
+  useVisualChips: 1
+  chipAnimationOrigin: {fileID: 2013436095}
 --- !u!1 &1659991573
 GameObject:
   m_ObjectHideFlags: 0
@@ -11824,6 +12046,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1659991573}
   m_CullTransparentMesh: 1
+--- !u!1 &1661040781
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1661040782}
+  - component: {fileID: 1661040783}
+  m_Layer: 0
+  m_Name: ChipOrigin
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1661040782
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1661040781}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1822501448}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &1661040783
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1661040781}
+  m_CullTransparentMesh: 1
 --- !u!1 &1670555188
 GameObject:
   m_ObjectHideFlags: 0
@@ -11876,6 +12142,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardVisual
   cardImage: {fileID: 0}
   cardBackSprite: {fileID: 21300000, guid: b1d11e4c1039cc14fa9e31da0e1f02ff, type: 3}
+  preserveImageAspect: 1
 --- !u!114 &1670555191
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12582,6 +12849,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardVisual
   cardImage: {fileID: 0}
   cardBackSprite: {fileID: 21300000, guid: b1d11e4c1039cc14fa9e31da0e1f02ff, type: 3}
+  preserveImageAspect: 1
 --- !u!114 &1784718505
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12790,6 +13058,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardVisual
   cardImage: {fileID: 0}
   cardBackSprite: {fileID: 21300000, guid: b1d11e4c1039cc14fa9e31da0e1f02ff, type: 3}
+  preserveImageAspect: 1
 --- !u!114 &1803300671
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12857,7 +13126,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1807207557}
   - component: {fileID: 1807207558}
-  - component: {fileID: 1807207559}
   m_Layer: 0
   m_Name: BetDisplay
   m_TagString: Untagged
@@ -12900,18 +13168,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BetDisplay
   betText: {fileID: 92662913}
   betContainer: {fileID: 1807207556}
---- !u!114 &1807207559
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1807207556}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3c5c5770a6000924d96068212d6e8f7b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ChipStackDisplay
+  chipStack: {fileID: 0}
+  useVisualChips: 1
+  chipAnimationOrigin: {fileID: 1366457871}
 --- !u!1 &1822501447
 GameObject:
   m_ObjectHideFlags: 0
@@ -12952,6 +13211,7 @@ RectTransform:
   - {fileID: 866146696}
   - {fileID: 1418090597}
   - {fileID: 1683814561}
+  - {fileID: 1661040782}
   m_Father: {fileID: 1933593156}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -13038,6 +13298,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BetDisplay
   betText: {fileID: 518410196}
   betContainer: {fileID: 1927586702}
+  chipStack: {fileID: 0}
+  useVisualChips: 1
+  chipAnimationOrigin: {fileID: 1661040782}
 --- !u!1 &1824899920
 GameObject:
   m_ObjectHideFlags: 0
@@ -13488,6 +13751,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BetDisplay
   betText: {fileID: 518410196}
   betContainer: {fileID: 1927586702}
+  chipStack: {fileID: 0}
+  useVisualChips: 1
+  chipAnimationOrigin: {fileID: 1661040782}
 --- !u!1 &1933593155
 GameObject:
   m_ObjectHideFlags: 0
@@ -14115,6 +14381,50 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &2013436094
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2013436095}
+  - component: {fileID: 2013436096}
+  m_Layer: 0
+  m_Name: ChipOrigin
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &2013436095
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2013436094}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1655316659}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &2013436096
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2013436094}
+  m_CullTransparentMesh: 1
 --- !u!1 &2016777790
 GameObject:
   m_ObjectHideFlags: 0
@@ -14586,6 +14896,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardVisual
   cardImage: {fileID: 0}
   cardBackSprite: {fileID: 21300000, guid: b1d11e4c1039cc14fa9e31da0e1f02ff, type: 3}
+  preserveImageAspect: 1
 --- !u!114 &2062172932
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14676,6 +14987,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardVisual
   cardImage: {fileID: 0}
   cardBackSprite: {fileID: 21300000, guid: b1d11e4c1039cc14fa9e31da0e1f02ff, type: 3}
+  preserveImageAspect: 1
 --- !u!114 &2109694116
 MonoBehaviour:
   m_ObjectHideFlags: 0

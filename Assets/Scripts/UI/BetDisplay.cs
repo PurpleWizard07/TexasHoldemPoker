@@ -14,6 +14,9 @@ public class BetDisplay : MonoBehaviour
     [SerializeField] private ChipStack chipStack;
     [SerializeField] private bool useVisualChips = true;
 
+    [Header("Animation Origin (Optional)")]
+    [SerializeField] private Transform chipAnimationOrigin;
+
     private decimal currentBet = 0;
 
     private void Awake()
@@ -80,7 +83,16 @@ public class BetDisplay : MonoBehaviour
     /// </summary>
     public Vector3 GetPosition()
     {
-        return transform.position;
+        return GetAnimationOrigin().position;
+    }
+
+    /// <summary>
+    /// Returns the origin transform used for chip movement animations.
+    /// If no custom origin is assigned, falls back to this object's transform.
+    /// </summary>
+    public Transform GetAnimationOrigin()
+    {
+        return chipAnimationOrigin != null ? chipAnimationOrigin : transform;
     }
 
     public void Clear()
