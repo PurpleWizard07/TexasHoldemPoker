@@ -166,8 +166,58 @@ public class UIManager : MonoBehaviour
                 currentRoundBet = state.RoundState.GetContribution(player.Id);
             }
             
-            playerPanels[i].UpdatePlayer(player, isActive, showCards, currentRoundBet, isDealer);
+            // Calculate position indicator (D, SB, BB)
+            PositionIndicator.PositionType position = GetPositionType(state, i);
+            
+            playerPanels[i].UpdatePlayer(player, isActive, showCards, currentRoundBet, isDealer, position);
         }
+    }
+    
+    /// <summary>
+    /// Determine the position type (Dealer, Small Blind, Big Blind) for a seat.
+    /// </summary>
+    private PositionIndicator.PositionType GetPositionType(GameState state, int seatIndex)
+    {
+        if (state == null || state.Phase == GamePhase.NotStarted)
+            return PositionIndicator.PositionType.None;
+        
+        int dealerSeat = state.DealerSeat;
+        int playerCount = state.Players.Count;
+        
+        // Calculate SB and BB positions (next two active players after dealer)
+        int smallBlindSeat = GetNextActiveSeat(state, dealerSeat, playerCount);
+        int bigBlindSeat = GetNextActiveSeat(state, smallBlindSeat, playerCount);
+        
+        // Determine position for this seat
+        if (seatIndex == dealerSeat)
+            return PositionIndicator.PositionType.Dealer;
+        else if (seatIndex == smallBlindSeat)
+            return PositionIndicator.PositionType.SmallBlind;
+        else if (seatIndex == bigBlindSeat)
+            return PositionIndicator.PositionType.BigBlind;
+        
+        return PositionIndicator.PositionType.None;
+    }
+    
+    /// <summary>
+    /// Get the next active seat (player with chips) after the given seat.
+    /// </summary>
+    private int GetNextActiveSeat(GameState state, int currentSeat, int playerCount)
+    {
+        int nextSeat = (currentSeat + 1) % playerCount;
+        int attempts = 0;
+        
+        while (attempts < playerCount)
+        {
+            var player = state.GetPlayerBySeat(nextSeat);
+            if (player != null && player.Stack > 0)
+                return nextSeat;
+            
+            nextSeat = (nextSeat + 1) % playerCount;
+            attempts++;
+        }
+        
+        return currentSeat; // Fallback
     }
 
     private void UpdateButtonStates(GameState state, bool isShowdown = false)
