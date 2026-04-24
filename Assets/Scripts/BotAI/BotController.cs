@@ -162,7 +162,8 @@ public class BotController : MonoBehaviour
 
     /// <summary>
     /// Converts a BotAction betSizeRatio to a chip amount.
-    /// ratio &lt;= 5.0 → BB multiplier; ratio &gt; 5.0 → pot fraction. (Req 12.2, 12.3)
+    /// ratio &lt;= 1.0 → pot fraction (post-flop sizing, e.g. 0.33 / 0.60 / 0.75)
+    /// ratio &gt; 1.0  → BB multiplier (pre-flop sizing, e.g. 2.5x / 3.0x / 3.5x)
     /// Check / Call / Fold → 0. (Req 12.4)
     /// </summary>
     private float CalculateBetAmount(BotAction action, float potSize, float bigBlind)
@@ -176,10 +177,12 @@ public class BotController : MonoBehaviour
 
             case PokerAction.Bet:
             case PokerAction.Raise:
-                if (action.betSizeRatio <= 5.0f)
-                    return action.betSizeRatio * bigBlind;  // Req 12.2 — BB multiplier
-                else
-                    return action.betSizeRatio * potSize;   // Req 12.3 — pot fraction
+                float amount = action.betSizeRatio <= 1.0f
+                    ? action.betSizeRatio * potSize    // post-flop pot-fraction sizing
+                    : action.betSizeRatio * bigBlind;  // pre-flop BB-multiplier sizing
+
+                // Keep engine validation happy: any bet/raise must be at least one big blind.
+                return Mathf.Max(bigBlind, amount);
 
             default:
                 return 0f;

@@ -904,7 +904,12 @@ MonoBehaviour:
   potAnimator: {fileID: 859406876}
   raiseControl: {fileID: 369235512}
   cardDealerManager: {fileID: 1834273426}
-  botPersonalities: []
+  botPersonalities:
+  - {fileID: 11400000, guid: 4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a, type: 2}
+  - {fileID: 11400000, guid: 6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c, type: 2}
+  - {fileID: 11400000, guid: 2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e, type: 2}
+  - {fileID: 11400000, guid: 3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f, type: 2}
+  - {fileID: 11400000, guid: 1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d, type: 2}
 --- !u!4 &133369835
 Transform:
   m_ObjectHideFlags: 0
