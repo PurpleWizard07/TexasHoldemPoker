@@ -14,7 +14,6 @@ public class PlayerUIPanel : MonoBehaviour
     [SerializeField] private Image highlightImage;
     [SerializeField] private CardVisual[] cardVisuals = new CardVisual[2];
     [SerializeField] private BetDisplay betDisplay;
-    [SerializeField] private DealerButtonDisplay dealerButton;
     [SerializeField] private PlayerActionDisplay actionDisplay;
     [SerializeField] private PositionIndicator positionIndicator;
     
@@ -28,7 +27,7 @@ public class PlayerUIPanel : MonoBehaviour
     private bool isGlowing = false;
     private float glowTimer = 0f;
 
-    public void UpdatePlayer(Player player, bool isActive, bool showCards = false, decimal currentBet = 0, bool isDealer = false, PositionIndicator.PositionType position = PositionIndicator.PositionType.None)
+    public void UpdatePlayer(Player player, bool isActive, bool showCards = false, decimal currentBet = 0, PositionIndicator.PositionType position = PositionIndicator.PositionType.None)
     {
         if (player == null) return;
 
@@ -64,15 +63,7 @@ public class PlayerUIPanel : MonoBehaviour
 
         // Update bet display
         if (betDisplay != null)
-        {
             betDisplay.SetBet(currentBet);
-        }
-
-        // Update dealer button
-        if (dealerButton != null)
-        {
-            dealerButton.SetActive(isDealer);
-        }
 
         // Update position indicator (D, SB, BB)
         if (positionIndicator != null)

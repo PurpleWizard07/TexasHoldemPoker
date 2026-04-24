@@ -144,7 +144,6 @@ public class UIManager : MonoBehaviour
         {
             var player = state.Players[i];
             bool isActive = state.CurrentSeatToAct == i;
-            bool isDealer = (state.DealerSeat == i);
             
             // Determine if we should show this player's cards
             bool showCards = false;
@@ -169,7 +168,7 @@ public class UIManager : MonoBehaviour
             // Calculate position indicator (D, SB, BB)
             PositionIndicator.PositionType position = GetPositionType(state, i);
             
-            playerPanels[i].UpdatePlayer(player, isActive, showCards, currentRoundBet, isDealer, position);
+            playerPanels[i].UpdatePlayer(player, isActive, showCards, currentRoundBet, position);
         }
     }
     

@@ -1,114 +1,98 @@
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
-/// Displays a player's current bet amount for the round with visual chip stacks.
+/// Displays the player's current round bet as a chip icon + formatted amount
+/// in a small dark pill, intended to sit just above the PlayerUIPanel.
+/// Hidden when bet is zero.
 /// </summary>
 public class BetDisplay : MonoBehaviour
 {
-    [Header("Text Display")]
+    [Header("References")]
+    [SerializeField] private Image chipIcon;
     [SerializeField] private TextMeshProUGUI betText;
-    [SerializeField] private GameObject betContainer;
-    
-    [Header("Visual Chips")]
-    [SerializeField] private ChipStack chipStack;
-    [SerializeField] private bool useVisualChips = true;
+    [SerializeField] private Image pillBackground;
 
-    [Header("Animation Origin (Optional)")]
+    [Header("Chip Sprite")]
+    [SerializeField] private Sprite chipSprite;
+
+    [Header("Animation Origin")]
     [SerializeField] private Transform chipAnimationOrigin;
 
     private decimal currentBet = 0;
 
     private void Awake()
     {
-        // Auto-create ChipStack if using visual chips but none assigned
-        if (useVisualChips && chipStack == null)
+        // Load chip sprite from Resources if not assigned
+        if (chipIcon != null && chipSprite == null)
         {
-            // Check if we have one as a child
-            chipStack = GetComponentInChildren<ChipStack>();
-            
-            // Create one if needed
-            if (chipStack == null && betContainer != null)
+            // Try to load any chip sprite from Resources
+            var loaded = Resources.Load<Sprite>("chip25");
+            if (loaded != null)
             {
-                GameObject chipStackObj = new GameObject("ChipStack");
-                chipStackObj.transform.SetParent(betContainer.transform);
-                chipStackObj.transform.localPosition = new Vector3(30, 0, 0); // Offset from text
-                chipStackObj.transform.localScale = Vector3.one;
-                
-                RectTransform rect = chipStackObj.AddComponent<RectTransform>();
-                rect.sizeDelta = new Vector2(100, 50);
-                rect.anchorMin = new Vector2(0, 0.5f);
-                rect.anchorMax = new Vector2(0, 0.5f);
-                rect.pivot = new Vector2(0, 0.5f);
-                
-                chipStack = chipStackObj.AddComponent<ChipStack>();
+                chipSprite = loaded;
+                chipIcon.sprite = chipSprite;
             }
         }
+
+        Hide();
     }
 
     public void SetBet(decimal amount)
     {
         currentBet = amount;
-        
+
         if (amount > 0)
         {
             if (betText != null)
-                betText.text = $"${amount}";
-            
-            if (betContainer != null)
-                betContainer.SetActive(true);
-            
-            // Update visual chips
-            if (useVisualChips && chipStack != null)
-            {
-                chipStack.SetAmount(amount);
-            }
+                betText.text = FormatAmount(amount);
+
+            if (chipIcon != null && chipSprite != null)
+                chipIcon.sprite = chipSprite;
+
+            Show();
         }
         else
         {
-            Clear();
+            Hide();
         }
     }
 
-    /// <summary>
-    /// Get the current bet amount.
-    /// </summary>
-    public decimal GetCurrentBet()
-    {
-        return currentBet;
-    }
+    public decimal GetCurrentBet() => currentBet;
 
-    /// <summary>
-    /// Get the world position of this bet display (for chip animations).
-    /// </summary>
-    public Vector3 GetPosition()
-    {
-        return GetAnimationOrigin().position;
-    }
-
-    /// <summary>
-    /// Returns the origin transform used for chip movement animations.
-    /// If no custom origin is assigned, falls back to this object's transform.
-    /// </summary>
-    public Transform GetAnimationOrigin()
-    {
-        return chipAnimationOrigin != null ? chipAnimationOrigin : transform;
-    }
+    public Transform GetAnimationOrigin() =>
+        chipAnimationOrigin != null ? chipAnimationOrigin : transform;
 
     public void Clear()
     {
         currentBet = 0;
-        
-        if (betContainer != null)
-            betContainer.SetActive(false);
-        
-        if (chipStack != null)
-            chipStack.ClearChips();
+        Hide();
     }
 
-    // Clear bet when new round starts
-    public void ClearForNewRound()
+    public void ClearForNewRound() => Clear();
+
+    private void Show()
     {
-        Clear();
+        if (pillBackground != null) pillBackground.enabled = true;
+        if (chipIcon != null)       chipIcon.enabled = true;
+        if (betText != null)        betText.enabled = true;
+    }
+
+    private void Hide()
+    {
+        if (pillBackground != null) pillBackground.enabled = false;
+        if (chipIcon != null)       chipIcon.enabled = false;
+        if (betText != null)        betText.enabled = false;
+    }
+
+    /// <summary>Format 1100 → 1.1K, 500 → 500</summary>
+    private string FormatAmount(decimal amount)
+    {
+        if (amount >= 1_000_000m)
+            return $"{amount / 1_000_000m:0.#}M";
+        if (amount >= 1_000m)
+            return $"{amount / 1_000m:0.#}K";
+        return $"{amount:0}";
     }
 }
