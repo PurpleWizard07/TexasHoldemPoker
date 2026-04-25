@@ -226,6 +226,7 @@ GameObject:
   - component: {fileID: 92662912}
   - component: {fileID: 92662914}
   - component: {fileID: 92662913}
+  - component: {fileID: 92662915}
   m_Layer: 0
   m_Name: BetText
   m_TagString: Untagged
@@ -272,7 +273,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: $5
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -316,7 +317,7 @@ MonoBehaviour:
   m_lineSpacingMax: 0
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
-  m_TextWrappingMode: 1
+  m_TextWrappingMode: 0
   m_wordWrappingRatios: 0.4
   m_overflowMode: 0
   m_linkedTextComponent: {fileID: 0}
@@ -352,6 +353,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 92662911}
   m_CullTransparentMesh: 1
+--- !u!114 &92662915
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 92662911}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
+  m_IgnoreLayout: 0
+  m_MinWidth: 40
+  m_MinHeight: -1
+  m_PreferredWidth: 80
+  m_PreferredHeight: -1
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!1 &98173911
 GameObject:
   m_ObjectHideFlags: 0
@@ -529,7 +550,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
   m_AnchoredPosition: {x: 0, y: 10}
-  m_SizeDelta: {x: 80, y: 36}
+  m_SizeDelta: {x: 120, y: 36}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &103608728
 MonoBehaviour:
@@ -545,7 +566,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BetDisplay
   chipIcon: {fileID: 772339483}
   betText: {fileID: 1441844475}
-  pillBackground: {fileID: 0}
+  pillBackground: {fileID: 103608730}
   chipSprite: {fileID: 0}
   chipAnimationOrigin: {fileID: 935884344}
 --- !u!114 &103608729
@@ -3328,6 +3349,7 @@ GameObject:
   - component: {fileID: 431773543}
   - component: {fileID: 431773545}
   - component: {fileID: 431773544}
+  - component: {fileID: 431773546}
   m_Layer: 0
   m_Name: BetText
   m_TagString: Untagged
@@ -3418,7 +3440,7 @@ MonoBehaviour:
   m_lineSpacingMax: 0
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
-  m_TextWrappingMode: 1
+  m_TextWrappingMode: 0
   m_wordWrappingRatios: 0.4
   m_overflowMode: 0
   m_linkedTextComponent: {fileID: 0}
@@ -3454,6 +3476,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 431773542}
   m_CullTransparentMesh: 1
+--- !u!114 &431773546
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 431773542}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
+  m_IgnoreLayout: 0
+  m_MinWidth: 40
+  m_MinHeight: -1
+  m_PreferredWidth: 80
+  m_PreferredHeight: -1
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!1 &454057753
 GameObject:
   m_ObjectHideFlags: 0
@@ -4121,7 +4163,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
   m_AnchoredPosition: {x: -0.000030517578, y: 10}
-  m_SizeDelta: {x: 80, y: 36}
+  m_SizeDelta: {x: 120, y: 36}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &511529458
 MonoBehaviour:
@@ -4215,6 +4257,7 @@ GameObject:
   - component: {fileID: 518410195}
   - component: {fileID: 518410197}
   - component: {fileID: 518410196}
+  - component: {fileID: 518410198}
   m_Layer: 0
   m_Name: BetText
   m_TagString: Untagged
@@ -4305,7 +4348,7 @@ MonoBehaviour:
   m_lineSpacingMax: 0
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
-  m_TextWrappingMode: 1
+  m_TextWrappingMode: 0
   m_wordWrappingRatios: 0.4
   m_overflowMode: 0
   m_linkedTextComponent: {fileID: 0}
@@ -4341,6 +4384,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 518410194}
   m_CullTransparentMesh: 1
+--- !u!114 &518410198
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 518410194}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
+  m_IgnoreLayout: 0
+  m_MinWidth: 40
+  m_MinHeight: -1
+  m_PreferredWidth: 80
+  m_PreferredHeight: -1
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!1001 &520397988
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5051,7 +5114,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
   m_AnchoredPosition: {x: -0.000030517578, y: 10}
-  m_SizeDelta: {x: 80, y: 36}
+  m_SizeDelta: {x: 120, y: 36}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &588620290
 MonoBehaviour:
@@ -5921,6 +5984,8 @@ GameObject:
   - component: {fileID: 719886106}
   - component: {fileID: 719886108}
   - component: {fileID: 719886107}
+  - component: {fileID: 719886110}
+  - component: {fileID: 719886109}
   m_Layer: 0
   m_Name: ChipIcon
   m_TagString: Untagged
@@ -5985,6 +6050,46 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 719886105}
   m_CullTransparentMesh: 1
+--- !u!114 &719886109
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 719886105}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
+  m_IgnoreLayout: 0
+  m_MinWidth: -1
+  m_MinHeight: -1
+  m_PreferredWidth: -1
+  m_PreferredHeight: -1
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
+--- !u!114 &719886110
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 719886105}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
+  m_IgnoreLayout: 0
+  m_MinWidth: -1
+  m_MinHeight: -1
+  m_PreferredWidth: 32
+  m_PreferredHeight: 32
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!1 &772339481
 GameObject:
   m_ObjectHideFlags: 0
@@ -5996,6 +6101,7 @@ GameObject:
   - component: {fileID: 772339482}
   - component: {fileID: 772339484}
   - component: {fileID: 772339483}
+  - component: {fileID: 772339485}
   m_Layer: 0
   m_Name: ChipIcon
   m_TagString: Untagged
@@ -6060,6 +6166,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 772339481}
   m_CullTransparentMesh: 1
+--- !u!114 &772339485
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 772339481}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
+  m_IgnoreLayout: 0
+  m_MinWidth: -1
+  m_MinHeight: -1
+  m_PreferredWidth: 32
+  m_PreferredHeight: 32
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!1 &779801286
 GameObject:
   m_ObjectHideFlags: 0
@@ -7315,7 +7441,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
   m_AnchoredPosition: {x: 0, y: 10}
-  m_SizeDelta: {x: 80, y: 36}
+  m_SizeDelta: {x: 120, y: 36}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &923717445
 MonoBehaviour:
@@ -10213,6 +10339,7 @@ GameObject:
   - component: {fileID: 1339038761}
   - component: {fileID: 1339038763}
   - component: {fileID: 1339038762}
+  - component: {fileID: 1339038764}
   m_Layer: 0
   m_Name: BetText
   m_TagString: Untagged
@@ -10339,6 +10466,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1339038760}
   m_CullTransparentMesh: 1
+--- !u!114 &1339038764
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1339038760}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
+  m_IgnoreLayout: 0
+  m_MinWidth: 40
+  m_MinHeight: -1
+  m_PreferredWidth: 80
+  m_PreferredHeight: -1
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!1 &1339107950
 GameObject:
   m_ObjectHideFlags: 0
@@ -10350,6 +10497,7 @@ GameObject:
   - component: {fileID: 1339107951}
   - component: {fileID: 1339107953}
   - component: {fileID: 1339107952}
+  - component: {fileID: 1339107954}
   m_Layer: 0
   m_Name: ChipIcon
   m_TagString: Untagged
@@ -10414,6 +10562,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1339107950}
   m_CullTransparentMesh: 1
+--- !u!114 &1339107954
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1339107950}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
+  m_IgnoreLayout: 0
+  m_MinWidth: -1
+  m_MinHeight: -1
+  m_PreferredWidth: 32
+  m_PreferredHeight: 32
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!1 &1352779870
 GameObject:
   m_ObjectHideFlags: 0
@@ -11206,6 +11374,7 @@ GameObject:
   - component: {fileID: 1441844474}
   - component: {fileID: 1441844476}
   - component: {fileID: 1441844475}
+  - component: {fileID: 1441844477}
   m_Layer: 0
   m_Name: BetText
   m_TagString: Untagged
@@ -11296,7 +11465,7 @@ MonoBehaviour:
   m_lineSpacingMax: 0
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
-  m_TextWrappingMode: 1
+  m_TextWrappingMode: 0
   m_wordWrappingRatios: 0.4
   m_overflowMode: 0
   m_linkedTextComponent: {fileID: 0}
@@ -11332,6 +11501,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1441844473}
   m_CullTransparentMesh: 1
+--- !u!114 &1441844477
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1441844473}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
+  m_IgnoreLayout: 0
+  m_MinWidth: 40
+  m_MinHeight: -1
+  m_PreferredWidth: 80
+  m_PreferredHeight: -1
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!1 &1453104056
 GameObject:
   m_ObjectHideFlags: 0
@@ -13878,7 +14067,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
   m_AnchoredPosition: {x: 0, y: 10}
-  m_SizeDelta: {x: 80, y: 36}
+  m_SizeDelta: {x: 120, y: 36}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &1807207558
 MonoBehaviour:
@@ -14102,6 +14291,7 @@ GameObject:
   - component: {fileID: 1823232697}
   - component: {fileID: 1823232699}
   - component: {fileID: 1823232698}
+  - component: {fileID: 1823232700}
   m_Layer: 0
   m_Name: ChipIcon
   m_TagString: Untagged
@@ -14166,6 +14356,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1823232696}
   m_CullTransparentMesh: 1
+--- !u!114 &1823232700
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1823232696}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
+  m_IgnoreLayout: 0
+  m_MinWidth: -1
+  m_MinHeight: -1
+  m_PreferredWidth: 32
+  m_PreferredHeight: 32
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!1 &1834273425
 GameObject:
   m_ObjectHideFlags: 0
@@ -14390,6 +14600,7 @@ GameObject:
   - component: {fileID: 1899242675}
   - component: {fileID: 1899242677}
   - component: {fileID: 1899242676}
+  - component: {fileID: 1899242678}
   m_Layer: 0
   m_Name: ChipIcon
   m_TagString: Untagged
@@ -14454,6 +14665,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1899242674}
   m_CullTransparentMesh: 1
+--- !u!114 &1899242678
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1899242674}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
+  m_IgnoreLayout: 0
+  m_MinWidth: -1
+  m_MinHeight: -1
+  m_PreferredWidth: 32
+  m_PreferredHeight: 32
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!1 &1911877574
 GameObject:
   m_ObjectHideFlags: 0
@@ -14590,7 +14821,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
   m_AnchoredPosition: {x: 0, y: 10}
-  m_SizeDelta: {x: 80, y: 36}
+  m_SizeDelta: {x: 120, y: 36}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &1927586704
 MonoBehaviour:
@@ -14941,6 +15172,7 @@ GameObject:
   - component: {fileID: 1943666751}
   - component: {fileID: 1943666753}
   - component: {fileID: 1943666752}
+  - component: {fileID: 1943666754}
   m_Layer: 0
   m_Name: BetText
   m_TagString: Untagged
@@ -15031,7 +15263,7 @@ MonoBehaviour:
   m_lineSpacingMax: 0
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
-  m_TextWrappingMode: 1
+  m_TextWrappingMode: 0
   m_wordWrappingRatios: 0.4
   m_overflowMode: 0
   m_linkedTextComponent: {fileID: 0}
@@ -15067,6 +15299,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1943666750}
   m_CullTransparentMesh: 1
+--- !u!114 &1943666754
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1943666750}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
+  m_IgnoreLayout: 0
+  m_MinWidth: 40
+  m_MinHeight: -1
+  m_PreferredWidth: 80
+  m_PreferredHeight: -1
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!1 &1960596853
 GameObject:
   m_ObjectHideFlags: 0
@@ -16089,6 +16341,7 @@ GameObject:
   - component: {fileID: 2111301175}
   - component: {fileID: 2111301177}
   - component: {fileID: 2111301176}
+  - component: {fileID: 2111301178}
   m_Layer: 0
   m_Name: ChipIcon
   m_TagString: Untagged
@@ -16153,6 +16406,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2111301174}
   m_CullTransparentMesh: 1
+--- !u!114 &2111301178
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2111301174}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
+  m_IgnoreLayout: 0
+  m_MinWidth: -1
+  m_MinHeight: -1
+  m_PreferredWidth: 32
+  m_PreferredHeight: 32
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!1 &2126497483
 GameObject:
   m_ObjectHideFlags: 0

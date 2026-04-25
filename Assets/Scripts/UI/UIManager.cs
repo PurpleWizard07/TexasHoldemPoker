@@ -89,12 +89,12 @@ public class UIManager : MonoBehaviour
         {
             if (state.Phase == GamePhase.NotStarted)
             {
-                // Show all card backs at start
+                // New hand starting — reset revealed state and show card backs
+                communityCardsDisplay.ResetForNewHand();
                 communityCardsDisplay.ShowAllCardBacks();
             }
             else
             {
-                // Update cards based on phase
                 communityCardsDisplay.UpdateCards(state.CommunityCards, state.Phase);
             }
         }

@@ -77,6 +77,14 @@ public class BetDisplay : MonoBehaviour
         if (pillBackground != null) pillBackground.enabled = true;
         if (chipIcon != null)       chipIcon.enabled = true;
         if (betText != null)        betText.enabled = true;
+        
+        // Shrink the pill to fit content — chip(32) + spacing(6) + text width + padding(8)
+        var rt = GetComponent<RectTransform>();
+        if (rt != null)
+        {
+            float textWidth = betText != null ? betText.preferredWidth : 50f;
+            rt.sizeDelta = new Vector2(32f + 6f + textWidth + 16f, rt.sizeDelta.y);
+        }
     }
 
     private void Hide()

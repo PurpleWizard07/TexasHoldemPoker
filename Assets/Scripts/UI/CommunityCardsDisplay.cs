@@ -5,54 +5,64 @@ using PokerEngine.State;
 
 /// <summary>
 /// Displays the 5 community cards (flop, turn, river) progressively based on game phase.
-/// Shows card backs initially, then flips to reveal cards as phases progress.
+/// Once a card is revealed it stays face-up for the rest of the hand.
 /// </summary>
 public class CommunityCardsDisplay : MonoBehaviour
 {
     [SerializeField] private CardVisual[] cardVisuals = new CardVisual[5];
 
+    // Tracks which card slots have been revealed — never flipped back
+    private bool[] _revealed = new bool[5];
+
     public void UpdateCards(IReadOnlyList<Card> communityCards, GamePhase currentPhase)
     {
-        // Always show all 5 card slots
         for (int i = 0; i < cardVisuals.Length; i++)
         {
             if (cardVisuals[i] == null) continue;
 
             if (i < communityCards.Count)
             {
-                // Determine if this card should be face up based on phase
-                bool shouldShowFaceUp = ShouldCardBeVisible(i, currentPhase);
-                
-                // Set the card (face up or face down)
-                cardVisuals[i].SetCard(communityCards[i], shouldShowFaceUp);
+                // If already revealed, keep it face-up — never reset it
+                if (_revealed[i])
+                {
+                    cardVisuals[i].SetCard(communityCards[i], true);
+                }
+                else
+                {
+                    // Not yet revealed — show face-down (animation will reveal it)
+                    cardVisuals[i].SetCard(communityCards[i], false);
+                }
             }
             else
             {
-                // Show card back for empty slots
+                // Empty slot — show card back
                 cardVisuals[i].SetFaceUp(false);
                 cardVisuals[i].gameObject.SetActive(true);
             }
         }
     }
 
-    private bool ShouldCardBeVisible(int cardIndex, GamePhase phase)
+    /// <summary>
+    /// Called by CardDealerManager after flip animation to permanently reveal a card.
+    /// </summary>
+    public void RevealCard(int index)
     {
-        return phase switch
-        {
-            GamePhase.NotStarted => false,      // All cards face down
-            GamePhase.PreFlop => false,         // All cards face down
-            GamePhase.Flop => cardIndex < 3,    // First 3 cards face up
-            GamePhase.Turn => cardIndex < 4,    // First 4 cards face up
-            GamePhase.River => true,            // All 5 cards face up
-            GamePhase.Showdown => true,         // All 5 cards face up
-            GamePhase.Complete => true,         // All 5 cards face up
-            _ => false
-        };
+        if (index < 0 || index >= cardVisuals.Length || cardVisuals[index] == null) return;
+        _revealed[index] = true;
+        cardVisuals[index].SetFaceUp(true);
+    }
+
+    /// <summary>
+    /// Load card data face-down without revealing. Used before deal animation.
+    /// </summary>
+    public void LoadCardFaceDown(int index, Card card)
+    {
+        if (index < 0 || index >= cardVisuals.Length || cardVisuals[index] == null) return;
+        cardVisuals[index].SetCard(card, false);
     }
 
     public void ShowAllCardBacks()
     {
-        // Show all 5 card backs (for start of hand)
         for (int i = 0; i < cardVisuals.Length; i++)
         {
             if (cardVisuals[i] != null)
@@ -63,8 +73,18 @@ public class CommunityCardsDisplay : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Reset revealed state — call at the start of each new hand.
+    /// </summary>
+    public void ResetForNewHand()
+    {
+        for (int i = 0; i < _revealed.Length; i++)
+            _revealed[i] = false;
+    }
+
     public void Clear()
     {
+        ResetForNewHand();
         foreach (var cardVisual in cardVisuals)
         {
             if (cardVisual != null)
@@ -72,10 +92,9 @@ public class CommunityCardsDisplay : MonoBehaviour
         }
     }
 
-    // Legacy method for backward compatibility
+    // Legacy fallback
     public void UpdateCards(IReadOnlyList<Card> communityCards)
     {
-        // Default to showing all cards face up (fallback)
         UpdateCards(communityCards, GamePhase.River);
     }
 }

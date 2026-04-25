@@ -68,6 +68,7 @@ public class CardDealerManager : MonoBehaviour
 
     /// <summary>
     /// Deal and reveal the flop (3 community cards).
+    /// Cards are loaded face-down first, then flipped one by one with animation.
     /// </summary>
     public IEnumerator DealFlop()
     {
@@ -81,18 +82,20 @@ public class CardDealerManager : MonoBehaviour
 
         var cardVisuals = communityCardsDisplay.GetComponentsInChildren<CardVisual>(true);
         
-        // Deal 3 cards for the flop
         for (int i = 0; i < 3 && i < cardVisuals.Length; i++)
         {
             Transform cardTransform = cardVisuals[i].transform;
             Vector3 targetPos = cardTransform.position;
             
-            // Deal card face down first
+            // Ensure face-down before animating
+            cardVisuals[i].SetFaceUp(false);
+            
             yield return cardAnimator.DealCardToPosition(cardTransform, targetPos, 0f);
             yield return new WaitForSeconds(0.1f);
             
-            // Flip to reveal
+            // Now flip to reveal
             yield return cardAnimator.FlipCard(cardVisuals[i], true, 0f);
+            communityCardsDisplay.RevealCard(i);
             yield return new WaitForSeconds(delayBetweenCards);
         }
 
@@ -116,15 +119,16 @@ public class CardDealerManager : MonoBehaviour
         
         if (cardVisuals.Length > 3)
         {
+            cardVisuals[3].SetFaceUp(false);
+            
             Transform cardTransform = cardVisuals[3].transform;
             Vector3 targetPos = cardTransform.position;
             
-            // Deal card face down
             yield return cardAnimator.DealCardToPosition(cardTransform, targetPos, 0f);
             yield return new WaitForSeconds(0.1f);
             
-            // Flip to reveal
             yield return cardAnimator.FlipCard(cardVisuals[3], true, 0f);
+            communityCardsDisplay.RevealCard(3);
         }
 
         Debug.Log("Turn dealt and revealed");
@@ -147,15 +151,16 @@ public class CardDealerManager : MonoBehaviour
         
         if (cardVisuals.Length > 4)
         {
+            cardVisuals[4].SetFaceUp(false);
+            
             Transform cardTransform = cardVisuals[4].transform;
             Vector3 targetPos = cardTransform.position;
             
-            // Deal card face down
             yield return cardAnimator.DealCardToPosition(cardTransform, targetPos, 0f);
             yield return new WaitForSeconds(0.1f);
             
-            // Flip to reveal
             yield return cardAnimator.FlipCard(cardVisuals[4], true, 0f);
+            communityCardsDisplay.RevealCard(4);
         }
 
         Debug.Log("River dealt and revealed");

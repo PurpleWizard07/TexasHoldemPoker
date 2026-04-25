@@ -193,6 +193,10 @@ public class PokerGameManager : MonoBehaviour, IGameObserver
                 
                 // Wait for human action
                 yield return new WaitUntil(() => !IsHumanPlayerTurn());
+                
+                // Update UI immediately so human's action/bet shows before phase transition
+                uiManager?.UpdateGameState(gameState);
+                yield return new WaitForSeconds(0.3f);
             }
             else
             {
@@ -210,7 +214,10 @@ public class PokerGameManager : MonoBehaviour, IGameObserver
             var phaseAfter = gameState.Phase;
             if (phaseBefore != phaseAfter)
             {
-                // Phase changed! Betting round complete
+                // Phase changed! Betting round complete.
+                // Wait briefly so the last player's action/bet is visible before transitioning.
+                yield return new WaitForSeconds(0.8f);
+                
                 Debug.Log($"Phase transition: {phaseBefore} → {phaseAfter}");
                 
                 // Animate chips flying from saved bet positions to center pot
