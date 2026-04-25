@@ -77,14 +77,29 @@ public class BetDisplay : MonoBehaviour
         if (pillBackground != null) pillBackground.enabled = true;
         if (chipIcon != null)       chipIcon.enabled = true;
         if (betText != null)        betText.enabled = true;
-        
-        // Shrink the pill to fit content — chip(32) + spacing(6) + text width + padding(8)
+
+        // Force TMP to update its layout data before we read preferredWidth
+        if (betText != null)
+            betText.ForceMeshUpdate();
+
+        // Enforce chip icon size so it never gets squashed
+        if (chipIcon != null)
+        {
+            var iconRect = chipIcon.GetComponent<RectTransform>();
+            if (iconRect != null)
+                iconRect.sizeDelta = new Vector2(32f, 32f);
+        }
+
+        // Resize pill: chip(32) + gap(6) + text + padding(16)
         var rt = GetComponent<RectTransform>();
         if (rt != null)
         {
             float textWidth = betText != null ? betText.preferredWidth : 50f;
             rt.sizeDelta = new Vector2(32f + 6f + textWidth + 16f, rt.sizeDelta.y);
         }
+
+        // Rebuild layout so all children reposition correctly
+        UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(GetComponent<RectTransform>());
     }
 
     private void Hide()
