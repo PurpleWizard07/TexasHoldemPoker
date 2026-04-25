@@ -282,6 +282,39 @@ public class UIManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Clears all per-hand UI state: cards, action labels, bet displays, status text.
+    /// Call this before dealing a new hand.
+    /// </summary>
+    public void ResetForNewHand()
+    {
+        // Reset community cards
+        if (communityCardsDisplay != null)
+        {
+            communityCardsDisplay.ResetForNewHand();
+            communityCardsDisplay.ShowAllCardBacks();
+        }
+
+        // Reset every player panel
+        if (playerPanels != null)
+        {
+            foreach (var panel in playerPanels)
+            {
+                if (panel == null) continue;
+                panel.ClearCards();
+                panel.ClearAction();
+                panel.ClearBet();
+                panel.ClearStatus();
+            }
+        }
+
+        // Reset pot text
+        if (potText != null)
+            potText.text = "POT: $0";
+
+        lastPhase = GamePhase.NotStarted;
+    }
+
+    /// <summary>
     /// Clear all player actions (called at start of new betting round).
     /// </summary>
     private void ClearAllPlayerActions()

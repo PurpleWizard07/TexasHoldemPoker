@@ -131,6 +131,12 @@ public class PokerGameManager : MonoBehaviour, IGameObserver
 
     private IEnumerator StartHandWithAnimation()
     {
+        // Clear all previous hand UI before dealing
+        if (uiManager != null)
+            uiManager.ResetForNewHand();
+
+        yield return new WaitForSeconds(0.3f); // brief pause so reset is visible
+
         // Deal hole cards with animation
         if (cardDealerManager != null)
         {

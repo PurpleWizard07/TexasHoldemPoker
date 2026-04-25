@@ -126,12 +126,18 @@ public class PlayerUIPanel : MonoBehaviour
     public void ClearCards()
     {
         if (cardVisuals == null) return;
-        
         foreach (var cardVisual in cardVisuals)
-        {
-            if (cardVisual != null)
-                cardVisual.Clear();
-        }
+            if (cardVisual != null) cardVisual.Clear();
+    }
+
+    public void ClearBet()
+    {
+        if (betDisplay != null) betDisplay.Clear();
+    }
+
+    public void ClearStatus()
+    {
+        if (statusText != null) statusText.text = "";
     }
 
     /// <summary>
