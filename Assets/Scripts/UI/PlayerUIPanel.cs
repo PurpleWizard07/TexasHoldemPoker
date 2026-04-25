@@ -37,7 +37,7 @@ public class PlayerUIPanel : MonoBehaviour
 
         // Update stack
         if (stackText != null)
-            stackText.text = $"${player.Stack}";
+            stackText.text = $"${(long)player.Stack}";
 
         // Update status
         if (statusText != null)

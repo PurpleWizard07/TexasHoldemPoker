@@ -97,10 +97,11 @@ public class BetDisplay : MonoBehaviour
     /// <summary>Format 1100 → 1.1K, 500 → 500</summary>
     private string FormatAmount(decimal amount)
     {
-        if (amount >= 1_000_000m)
-            return $"{amount / 1_000_000m:0.#}M";
-        if (amount >= 1_000m)
-            return $"{amount / 1_000m:0.#}K";
-        return $"{amount:0}";
+        long whole = (long)amount;
+        if (whole >= 1_000_000)
+            return $"{whole / 1_000_000f:0.#}M";
+        if (whole >= 1_000)
+            return $"{whole / 1_000f:0.#}K";
+        return $"{whole}";
     }
 }

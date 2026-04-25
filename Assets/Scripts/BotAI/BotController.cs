@@ -195,13 +195,15 @@ public class BotController : MonoBehaviour
 
     private static PlayerAction ToPlayerAction(PokerAction action, System.Guid playerId, float amount)
     {
+        // Round to whole chips — no fractional amounts at the table
+        decimal chips = (decimal)Mathf.Round(amount);
         switch (action)
         {
             case PokerAction.Fold:  return PlayerAction.Fold(playerId);
             case PokerAction.Check: return PlayerAction.Check(playerId);
             case PokerAction.Call:  return PlayerAction.Call(playerId);
-            case PokerAction.Bet:   return PlayerAction.Bet(playerId, (decimal)amount);
-            case PokerAction.Raise: return PlayerAction.Raise(playerId, (decimal)amount);
+            case PokerAction.Bet:   return PlayerAction.Bet(playerId, chips);
+            case PokerAction.Raise: return PlayerAction.Raise(playerId, chips);
             default:                return PlayerAction.Check(playerId);
         }
     }

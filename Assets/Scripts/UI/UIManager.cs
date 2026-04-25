@@ -75,7 +75,7 @@ public class UIManager : MonoBehaviour
         if (potText != null)
         {
             var totalPot = state.TotalContributions.Values.Sum();
-            potText.text = $"POT: ${totalPot}";
+            potText.text = $"POT: ${(long)totalPot}";
         }
 
         // Update phase
@@ -114,7 +114,7 @@ public class UIManager : MonoBehaviour
         if (potText != null)
         {
             var totalPot = state.TotalContributions.Values.Sum();
-            potText.text = $"POT: ${totalPot}";
+            potText.text = $"POT: ${(long)totalPot}";
         }
 
         // Update phase
@@ -327,3 +327,4 @@ public class UIManager : MonoBehaviour
         return displays.ToArray();
     }
 }
+

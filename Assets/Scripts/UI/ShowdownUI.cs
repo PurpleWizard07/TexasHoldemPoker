@@ -58,7 +58,7 @@ public class ShowdownUI : MonoBehaviour
             winnerNameText.text = $"{playerName} WINS!";
         
         if (winnerAmountText != null)
-            winnerAmountText.text = $"${amount}";
+            winnerAmountText.text = $"${(long)amount}";
         
         if (winnerHandText != null)
             winnerHandText.text = handName;
